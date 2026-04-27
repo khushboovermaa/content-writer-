@@ -940,53 +940,104 @@ Write it now. Make it feel like it came from someone who genuinely knows this to
 
     // ── MARKDOWN → HTML RENDERER ─────────────────────────────────────────────────
     function mdToHtml(md) {
-        let h = md
-            // Escape HTML special chars first
-            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-            // Headings
-            .replace(/^#### (.+)$/gm, '<h4 style="color:#93c5fd;font-size:15px;margin:18px 0 6px;">$1</h4>')
-            .replace(/^### (.+)$/gm,  '<h3 style="color:#60a5fa;font-size:17px;margin:22px 0 8px;">$1</h3>')
-            .replace(/^## (.+)$/gm,   '<h2 style="color:#38bdf8;font-size:20px;margin:26px 0 10px;border-bottom:1px solid rgba(96,165,250,0.25);padding-bottom:6px;">$1</h2>')
-            .replace(/^# (.+)$/gm,    '<h1 style="color:#e2e8f0;font-size:24px;font-weight:700;margin:0 0 16px;">$1</h1>')
-            // Bold + italic combos
+        // Step 1: Strip any raw HTML tags the AI might inject (anchor slugs, etc.)
+        let s = md.replace(/<[^>]+>/g, '');
+
+        // Step 2: Process line by line for block elements, then inline
+        const lines = s.split('\n');
+        const out   = [];
+        let inList  = false;
+
+        for (let i = 0; i < lines.length; i++) {
+            let line = lines[i];
+
+            // Headings (must check before any escaping)
+            if (/^#### (.+)/.test(line)) {
+                if (inList) { out.push('</ul>'); inList = false; }
+                out.push(`<h4 style="color:#93c5fd;font-size:14px;font-weight:600;margin:16px 0 5px;">${inlineFormat(line.replace(/^#### /, ''))}</h4>`);
+                continue;
+            }
+            if (/^### (.+)/.test(line)) {
+                if (inList) { out.push('</ul>'); inList = false; }
+                out.push(`<h3 style="color:#60a5fa;font-size:17px;font-weight:600;margin:22px 0 8px;">${inlineFormat(line.replace(/^### /, ''))}</h3>`);
+                continue;
+            }
+            if (/^## (.+)/.test(line)) {
+                if (inList) { out.push('</ul>'); inList = false; }
+                out.push(`<h2 style="color:#38bdf8;font-size:20px;font-weight:700;margin:28px 0 10px;padding-bottom:6px;border-bottom:1px solid rgba(96,165,250,0.25);">${inlineFormat(line.replace(/^## /, ''))}</h2>`);
+                continue;
+            }
+            if (/^# (.+)/.test(line)) {
+                if (inList) { out.push('</ul>'); inList = false; }
+                out.push(`<h1 style="color:#e2e8f0;font-size:26px;font-weight:700;margin:0 0 18px;line-height:1.3;">${inlineFormat(line.replace(/^# /, ''))}</h1>`);
+                continue;
+            }
+
+            // Horizontal rule
+            if (/^---+$/.test(line.trim())) {
+                if (inList) { out.push('</ul>'); inList = false; }
+                out.push('<hr style="border:none;border-top:1px solid rgba(148,163,184,0.2);margin:22px 0;">');
+                continue;
+            }
+
+            // Unordered list items
+            if (/^[\-\*] (.+)/.test(line)) {
+                if (!inList) { out.push('<ul style="margin:8px 0 10px 22px;padding:0;">'); inList = true; }
+                out.push(`<li style="margin-bottom:6px;color:#cbd5e1;line-height:1.7;">${inlineFormat(line.replace(/^[\-\*] /, ''))}</li>`);
+                continue;
+            }
+
+            // Ordered list items
+            if (/^\d+\. (.+)/.test(line)) {
+                if (!inList) { out.push('<ol style="margin:8px 0 10px 22px;padding:0;">'); inList = true; }
+                out.push(`<li style="margin-bottom:6px;color:#cbd5e1;line-height:1.7;">${inlineFormat(line.replace(/^\d+\. /, ''))}</li>`);
+                continue;
+            }
+
+            // Blank line
+            if (line.trim() === '') {
+                if (inList) { out.push('</ul>'); inList = false; }
+                out.push('<div style="height:10px;"></div>');
+                continue;
+            }
+
+            // Regular paragraph line
+            if (inList) { out.push('</ul>'); inList = false; }
+            out.push(`<p style="margin:0 0 12px;color:#cbd5e1;line-height:1.8;font-size:14px;">${inlineFormat(line)}</p>`);
+        }
+
+        if (inList) out.push('</ul>');
+        return out.join('\n');
+    }
+
+    function inlineFormat(text) {
+        // Escape HTML special chars in plain text portions only
+        return text
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            // Bold + italic
             .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
             // Bold
-            .replace(/\*\*(.+?)\*\*/g, '<strong style="color:#f1f5f9;">$1</strong>')
+            .replace(/\*\*(.+?)\*\*/g, '<strong style="color:#f1f5f9;font-weight:600;">$1</strong>')
             // Italic
-            .replace(/\*(.+?)\*/g, '<em style="color:#cbd5e1;">$1</em>')
-            // Horizontal rules
-            .replace(/^---+$/gm, '<hr style="border:none;border-top:1px solid rgba(148,163,184,0.2);margin:20px 0;">')
-            // Unordered lists (- item or * item)
-            .replace(/^[\-\*] (.+)$/gm, '<li style="margin-bottom:5px;color:#cbd5e1;">$1</li>')
-            // Ordered lists
-            .replace(/^\d+\. (.+)$/gm, '<li style="margin-bottom:5px;color:#cbd5e1;">$1</li>')
-            // Wrap consecutive <li> in <ul>
-            .replace(/((?:<li[^>]*>.*<\/li>\n?)+)/g, '<ul style="margin:10px 0 10px 20px;padding:0;">$1</ul>')
-            // Blockquotes
-            .replace(/^&gt; (.+)$/gm, '<blockquote style="border-left:3px solid #60a5fa;padding:8px 14px;margin:10px 0;color:#94a3b8;background:rgba(96,165,250,0.05);border-radius:0 6px 6px 0;">$1</blockquote>')
+            .replace(/\*(.+?)\*/g, '<em style="color:#e2e8f0;">$1</em>')
             // Inline code
-            .replace(/`([^`]+)`/g, '<code style="background:rgba(15,23,42,0.7);padding:2px 6px;border-radius:4px;color:#a78bfa;font-family:monospace;font-size:12px;">$1</code>')
-            // Meta label lines like "Meta Title:" or "Content Score:"
-            .replace(/^([A-Z][A-Za-z\s\/]+):\s*$/gm, '<p style="font-size:12px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.6px;margin:18px 0 4px;">$1</p>')
-            // Paragraphs — blank lines become paragraph breaks
-            .replace(/\n{2,}/g, '</p><p style="margin-bottom:12px;color:#cbd5e1;line-height:1.75;">')
-            // Single newlines → <br>
-            .replace(/\n/g, '<br>');
-
-        return `<p style="margin-bottom:12px;color:#cbd5e1;line-height:1.75;">${h}</p>`;
+            .replace(/`([^`]+)`/g, '<code style="background:rgba(15,23,42,0.8);padding:2px 7px;border-radius:4px;color:#a78bfa;font-family:monospace;font-size:12px;">$1</code>');
     }
 
     // Strip markdown for plain-text copy/download
     function mdToPlainText(md) {
         return md
-            .replace(/^#{1,4} /gm, '')
+            .replace(/<[^>]+>/g, '')           // strip any HTML tags
+            .replace(/^#{1,4} /gm, '')          // remove heading markers
             .replace(/\*\*\*(.+?)\*\*\*/g, '$1')
             .replace(/\*\*(.+?)\*\*/g, '$1')
             .replace(/\*(.+?)\*/g, '$1')
             .replace(/`([^`]+)`/g, '$1')
             .replace(/^[\-\*] /gm, '• ')
+            .replace(/^\d+\. /gm, (m, o, s) => m)  // keep numbered lists
             .replace(/^---+$/gm, '─────────────────────────')
-            .replace(/^&gt; /gm, '')
             .trim();
     }
 
