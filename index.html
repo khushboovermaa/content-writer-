@@ -104,6 +104,7 @@
     <div class="header">
         <h1>🎯 Content Score Engine</h1>
         <p>All-in-One AI Content Writing Tool | Google E-E-A-T Optimized</p>
+        <button class="btn btn-secondary" onclick="changeKey()" style="margin-top:12px;font-size:12px;padding:6px 14px;">🔑 Set / Change API Key</button>
     </div>
 
     <div class="main-tabs">
@@ -282,6 +283,16 @@
 
 <script>
     const API_ENDPOINT = "https://api.anthropic.com/v1/messages";
+    let savedKey = sessionStorage.getItem('anthropic_key') || '';
+
+    function getApiKey() {
+        if (savedKey) return savedKey;
+        const key = prompt('🔑 Enter your Anthropic API key:\n(Get one free at console.anthropic.com)\n\nIt will be remembered for this browser session only.');
+        if (!key) throw new Error('API key is required to use this tool.');
+        savedKey = key.trim();
+        sessionStorage.setItem('anthropic_key', savedKey);
+        return savedKey;
+    }
 
     function switchMainTab(event, tabName) {
         event.preventDefault();
@@ -300,9 +311,15 @@
     }
 
     async function callClaude(prompt, maxTokens) {
+        const key = getApiKey();
         const response = await fetch(API_ENDPOINT, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': key,
+                'anthropic-version': '2023-06-01',
+                'anthropic-dangerous-direct-browser-access': 'true'
+            },
             body: JSON.stringify({
                 model: 'claude-sonnet-4-20250514',
                 max_tokens: maxTokens,
@@ -310,11 +327,22 @@
             })
         });
         if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error?.message || `API Error: ${response.status}`);
+            const errData = await response.json();
+            const msg = errData.error?.message || 'API Error: ' + response.status;
+            if (response.status === 401) {
+                savedKey = '';
+                sessionStorage.removeItem('anthropic_key');
+                throw new Error('Invalid API key — cleared. Try again to re-enter your key.');
+            }
+            throw new Error(msg);
         }
         const data = await response.json();
         return data.content[0].text;
+    }
+
+    function changeKey() {
+        const key = prompt('Enter your Anthropic API key (console.anthropic.com):');
+        if (key) { savedKey = key.trim(); sessionStorage.setItem('anthropic_key', savedKey); alert('API key saved for this session.'); }
     }
 
     async function analyzeUrls() {
