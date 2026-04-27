@@ -577,35 +577,65 @@ Fill in 4 to 5 sectionsToRewrite entries for YOUR URL. Fill in one competitor ob
             return;
         }
 
-        showLoading('rewriteResults', 'Rewriting content…');
+        showLoading('rewriteResults', 'Rewriting with Google people-first guidelines…');
 
         const pageGuides = {
-            blog: 'Blog Post (1500-3000 words, answer-first, question headers, FAQ)',
-            service: 'Service Page (800-1500 words, process, outcomes, testimonials)',
-            homepage: 'Homepage (trust signals, About, value proposition)',
-            'case-study': 'Case Study (800-2000 words, challenge/solution/results)'
+            blog: 'Blog Post (1500–3000 words)',
+            service: 'Service Page (800–1500 words)',
+            homepage: 'Homepage',
+            'case-study': 'Case Study (800–2000 words, challenge / solution / results)'
         };
 
-        const prompt = `You are an expert SEO content strategist. Rewrite the content below for maximum E-E-A-T signals and AI Overview visibility.
+        const prompt = `You are a senior content editor who follows Google's official content guidelines strictly. Rewrite the content below so it passes every Google people-first and E-E-A-T quality check.
 
-Keyword: "${keyword}"
-Page Type: ${pageGuides[pageType]}
+KEYWORD: "${keyword}"
+PAGE TYPE: ${pageGuides[pageType]}
 
-Content:
----
+===== GOOGLE GUIDELINES YOU MUST FOLLOW =====
+
+From "Creating Helpful, Reliable, People-First Content" (Google Search Central):
+1. PEOPLE-FIRST: Write for real humans, not for search engines. Every sentence must serve the reader's actual need — not keyword density.
+2. SATISFY INTENT FULLY: The reader should feel they got a complete, satisfying answer. No cliffhangers, no "contact us to learn more" as the only answer.
+3. DEMONSTRATE REAL EXPERIENCE: Show first-hand knowledge. Use specific examples, real scenarios, concrete numbers, or lived observations — not vague generalisations.
+4. AVOID CONTENT WRITTEN TO RANK: Do NOT pad word count. Do NOT repeat the keyword unnaturally. Do NOT write sections that exist only to hit headings.
+5. TRUSTWORTHY: Include who wrote it, why they are qualified, and cite real sources where claims are made.
+
+From "Google Search's Guidance on AI-Generated Content":
+6. QUALITY OVER METHOD: AI-assisted content is acceptable ONLY if a human has added genuine insight, reviewed accuracy, and ensured it reflects real expertise. Do not produce content that looks auto-generated.
+7. NO THIN CONTENT: Every paragraph must add unique value. Remove filler, padding, and obvious statements the reader already knows.
+8. HUMAN EDITORIAL VOICE: Write with a clear, confident, human perspective. Have opinions. Take positions. Don't hedge every sentence.
+
+From Google's Search Quality Rater guidelines on E-E-A-T:
+9. EXPERIENCE: Reference what someone with real hands-on experience would say — practical tips, things that surprised them, what they'd do differently.
+10. EXPERTISE: Use precise, accurate language for the topic. Avoid vague buzzwords.
+11. AUTHORITATIVENESS: Back up key claims with data, named sources, or industry standards.
+12. TRUSTWORTHINESS: Be honest about limitations. Don't over-promise. Acknowledge trade-offs.
+
+===== WHAT TO AVOID =====
+- Generic bullet lists of obvious tips ("Make sure your content is high quality")
+- Passive, hedge-everything sentences ("It may be important to consider...")
+- Robotic transitions ("In conclusion", "Furthermore", "It is worth noting that")
+- Keyword stuffing or unnatural repetition of "${keyword}"
+- Padding sentences that add no information
+- Promising to answer something then not answering it
+
+===== CONTENT TO REWRITE =====
 ${content}
----
 
-Rewrite to include:
-1. E-E-A-T optimization (credentials, citations, expertise, trust)
-2. AI Overview structure (answer-first, short paragraphs, stats)
-3. Keyword integration (H1, first 100 words, related terms)
-4. Technical improvements (H1/H2/H3, links, schema)
+===== OUTPUT FORMAT =====
+Write the full rewritten content with:
+- A strong, specific H1 that reflects the reader's actual goal (not just the keyword)
+- Natural, confident prose written as a knowledgeable human would speak
+- Concrete examples or scenarios embedded in the text (not as a separate "examples" section)
+- Headers (H2/H3) that are genuine content signposts, not keyword containers
+- A short author note or expertise signal near the top (1–2 sentences)
+- Where relevant, a FAQ section with direct, honest answers
+- Meta title (under 60 chars) and meta description (under 155 chars) at the end
 
-Output: Complete rewritten content ready to copy-paste.`;
+Write the content now. Make it feel like it was written by a real expert who genuinely cares about helping the reader — because that is what Google rewards.`;
 
         try {
-            const result = await callClaude(prompt, 3000);
+            const result = await callClaude(prompt, 4000);
             displayResults('rewriteResults', result);
         } catch (error) {
             showError('rewriteResults', error.message);
@@ -634,27 +664,51 @@ Output: Complete rewritten content ready to copy-paste.`;
             'case-study': 'Case Study - 800-2000 words'
         };
 
-        const prompt = `You are an expert SEO content strategist using the RAG E-E-A-T framework. Create original, E-E-A-T compliant content:
+        const prompt = `You are a senior content strategist who writes strictly by Google's people-first content guidelines. Create original content that a real expert would be proud to publish.
 
-Keyword: "${primaryKeyword}"
-Secondary: ${secondaryKeywords || 'auto-generate related terms'}
-Type: ${pageGuides[pageType]}
-Audience: ${audience}
-Brand: ${brandInfo}
+KEYWORD: "${primaryKeyword}"
+SECONDARY KEYWORDS: ${secondaryKeywords || 'derive naturally from the topic'}
+PAGE TYPE: ${pageGuides[pageType]}
+TARGET AUDIENCE: ${audience}
+BRAND CONTEXT: ${brandInfo}
 
-Include:
-1. Experience signals (case studies, real examples, original data)
-2. Expertise signals (author credentials, methodology)
-3. Authoritativeness (citations, external references)
-4. Trustworthiness (HTTPS mention, current info, author bio)
-5. AI Overview optimization (answer-first, FAQ, question headers)
+===== GOOGLE GUIDELINES TO FOLLOW =====
 
-Output: Complete ready-to-publish content with:
-- Proper H1/H2/H3 structure
-- Meta title and description
-- FAQ section
-- Internal link suggestions
-- Content score (0-100)`;
+PEOPLE-FIRST (Google Search Central):
+- Write for the reader's actual goal, not to rank. Every sentence must serve the human.
+- Fully satisfy search intent — reader should leave with a complete answer.
+- Demonstrate first-hand experience: use specific examples, real numbers, practical observations.
+- No padding, no filler, no "it's important to note that" hedging.
+
+AI CONTENT GUIDANCE (Google, 2023):
+- Content must show genuine human insight and editorial judgment — not generic auto-generated text.
+- Every claim must be accurate and verifiable. Cite real sources where applicable.
+- Write with a clear human voice: take positions, have opinions, be direct.
+
+E-E-A-T SIGNALS:
+- EXPERIENCE: Include practical, hands-on insights a real practitioner would share.
+- EXPERTISE: Use precise industry language correctly. Avoid buzzwords without substance.
+- AUTHORITATIVENESS: Reference known standards, research, or named industry figures.
+- TRUSTWORTHINESS: Be honest about limitations and trade-offs. Don't over-promise.
+
+===== STRICTLY AVOID =====
+- Generic tip lists ("Tip 1: Be consistent") with no real depth
+- Robotic phrases: "In conclusion", "Furthermore", "It is worth noting"
+- Keyword stuffing or forcing "${primaryKeyword}" unnaturally
+- Sections that exist only to add word count
+- Vague claims without supporting evidence or examples
+
+===== DELIVER =====
+- A compelling H1 that speaks directly to what ${audience} actually want to achieve
+- An opening paragraph that answers the core question in 2–3 sentences (answer-first)
+- Body sections with H2/H3 headers that are genuinely informative, not just keyword containers
+- At least 2 specific examples, scenarios, or data points embedded naturally in the text
+- A short expertise/author signal (who should write this and why they'd know)
+- FAQ section with 4–5 direct, honest questions and answers
+- Meta title (under 60 chars) and meta description (under 155 chars)
+- A content quality score out of 100 with a one-line reason
+
+Write it now. Make it feel like it came from someone who genuinely knows this topic and cares about helping ${audience}.`;
 
         try {
             const result = await callClaude(prompt, 4000);
@@ -884,29 +938,152 @@ Output: Complete ready-to-publish content with:
         container.innerHTML = `<div style="margin-top:24px;">${compHtml}${all.map((d, i) => urlCard(d, i === 0)).join('')}</div>`;
     }
 
+    // ── MARKDOWN → HTML RENDERER ─────────────────────────────────────────────────
+    function mdToHtml(md) {
+        let h = md
+            // Escape HTML special chars first
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            // Headings
+            .replace(/^#### (.+)$/gm, '<h4 style="color:#93c5fd;font-size:15px;margin:18px 0 6px;">$1</h4>')
+            .replace(/^### (.+)$/gm,  '<h3 style="color:#60a5fa;font-size:17px;margin:22px 0 8px;">$1</h3>')
+            .replace(/^## (.+)$/gm,   '<h2 style="color:#38bdf8;font-size:20px;margin:26px 0 10px;border-bottom:1px solid rgba(96,165,250,0.25);padding-bottom:6px;">$1</h2>')
+            .replace(/^# (.+)$/gm,    '<h1 style="color:#e2e8f0;font-size:24px;font-weight:700;margin:0 0 16px;">$1</h1>')
+            // Bold + italic combos
+            .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
+            // Bold
+            .replace(/\*\*(.+?)\*\*/g, '<strong style="color:#f1f5f9;">$1</strong>')
+            // Italic
+            .replace(/\*(.+?)\*/g, '<em style="color:#cbd5e1;">$1</em>')
+            // Horizontal rules
+            .replace(/^---+$/gm, '<hr style="border:none;border-top:1px solid rgba(148,163,184,0.2);margin:20px 0;">')
+            // Unordered lists (- item or * item)
+            .replace(/^[\-\*] (.+)$/gm, '<li style="margin-bottom:5px;color:#cbd5e1;">$1</li>')
+            // Ordered lists
+            .replace(/^\d+\. (.+)$/gm, '<li style="margin-bottom:5px;color:#cbd5e1;">$1</li>')
+            // Wrap consecutive <li> in <ul>
+            .replace(/((?:<li[^>]*>.*<\/li>\n?)+)/g, '<ul style="margin:10px 0 10px 20px;padding:0;">$1</ul>')
+            // Blockquotes
+            .replace(/^&gt; (.+)$/gm, '<blockquote style="border-left:3px solid #60a5fa;padding:8px 14px;margin:10px 0;color:#94a3b8;background:rgba(96,165,250,0.05);border-radius:0 6px 6px 0;">$1</blockquote>')
+            // Inline code
+            .replace(/`([^`]+)`/g, '<code style="background:rgba(15,23,42,0.7);padding:2px 6px;border-radius:4px;color:#a78bfa;font-family:monospace;font-size:12px;">$1</code>')
+            // Meta label lines like "Meta Title:" or "Content Score:"
+            .replace(/^([A-Z][A-Za-z\s\/]+):\s*$/gm, '<p style="font-size:12px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.6px;margin:18px 0 4px;">$1</p>')
+            // Paragraphs — blank lines become paragraph breaks
+            .replace(/\n{2,}/g, '</p><p style="margin-bottom:12px;color:#cbd5e1;line-height:1.75;">')
+            // Single newlines → <br>
+            .replace(/\n/g, '<br>');
+
+        return `<p style="margin-bottom:12px;color:#cbd5e1;line-height:1.75;">${h}</p>`;
+    }
+
+    // Strip markdown for plain-text copy/download
+    function mdToPlainText(md) {
+        return md
+            .replace(/^#{1,4} /gm, '')
+            .replace(/\*\*\*(.+?)\*\*\*/g, '$1')
+            .replace(/\*\*(.+?)\*\*/g, '$1')
+            .replace(/\*(.+?)\*/g, '$1')
+            .replace(/`([^`]+)`/g, '$1')
+            .replace(/^[\-\*] /gm, '• ')
+            .replace(/^---+$/gm, '─────────────────────────')
+            .replace(/^&gt; /gm, '')
+            .trim();
+    }
+
     // ── GENERIC DISPLAY ───────────────────────────────────────────────────────────
+    // Store raw markdown for copy/download
+    const _resultStore = {};
+
     function displayResults(containerId, content) {
-        const textContent = content.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        _resultStore[containerId] = content;
+        const rendered = mdToHtml(content);
         document.getElementById(containerId).innerHTML = `
             <div style="margin-top:24px;">
-                <div class="success-message">✅ Done! Ready to copy.</div>
+                <div class="success-message">✅ Done! Formatted and ready to copy or download.</div>
                 <div class="content-box">
-                    <div class="content-preview">${textContent}</div>
+                    <div class="content-preview" style="white-space:normal;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;line-height:1.75;max-height:560px;overflow-y:auto;">
+                        ${rendered}
+                    </div>
                 </div>
                 <div class="button-group" style="margin-top:16px;">
-                    <button class="btn btn-primary" onclick="copyResult('${containerId}')">📋 Copy</button>
-                    <button class="btn btn-secondary" onclick="downloadResult('${containerId}')">📥 Download</button>
+                    <button class="btn btn-primary"   onclick="copyResult('${containerId}')">📋 Copy Clean Text</button>
+                    <button class="btn btn-secondary" onclick="downloadWord('${containerId}')">📄 Download as Word (.doc)</button>
+                    <button class="btn btn-secondary" onclick="downloadTxt('${containerId}')">📥 Download as .txt</button>
                 </div>
             </div>`;
     }
 
     function copyResult(containerId) {
-        const text = document.querySelector(`#${containerId} .content-preview`).textContent;
-        navigator.clipboard.writeText(text).then(() => alert('✅ Copied!')).catch(() => alert('Failed to copy'));
+        const md   = _resultStore[containerId] || '';
+        const text = mdToPlainText(md);
+        navigator.clipboard.writeText(text)
+            .then(() => alert('✅ Copied! Paste anywhere — Word, Google Docs, Notion, etc.'))
+            .catch(() => alert('Copy failed. Please select text manually.'));
     }
 
-    function downloadResult(containerId) {
-        const text = document.querySelector(`#${containerId} .content-preview`).textContent;
+    function downloadWord(containerId) {
+        const md = _resultStore[containerId] || '';
+        // Build a minimal Word-compatible HTML document
+        const wordHtml = `
+<html xmlns:o="urn:schemas-microsoft-com:office:office"
+      xmlns:w="urn:schemas-microsoft-com:office:word"
+      xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+  <meta charset="utf-8">
+  <title>Content</title>
+  <!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View></w:WordDocument></xml><![endif]-->
+  <style>
+    body { font-family: Calibri, sans-serif; font-size: 11pt; color: #1a1a1a; margin: 2cm; line-height: 1.6; }
+    h1 { font-size: 20pt; color: #1a3a5c; margin-bottom: 6pt; }
+    h2 { font-size: 16pt; color: #1a3a5c; border-bottom: 1px solid #ccc; padding-bottom: 4pt; margin-top: 18pt; }
+    h3 { font-size: 13pt; color: #1a5c3a; margin-top: 14pt; }
+    h4 { font-size: 11pt; color: #444; margin-top: 10pt; }
+    p  { margin-bottom: 8pt; }
+    ul { margin-left: 18pt; }
+    li { margin-bottom: 4pt; }
+    strong { font-weight: bold; }
+    em { font-style: italic; }
+    hr { border: none; border-top: 1px solid #ccc; margin: 12pt 0; }
+    code { font-family: Courier New, monospace; background: #f5f5f5; padding: 1pt 3pt; }
+  </style>
+</head>
+<body>
+${mdToWordHtml(md)}
+</body>
+</html>`;
+        const blob = new Blob(['\ufeff' + wordHtml], { type: 'application/msword;charset=utf-8' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'content.doc';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+
+    function mdToWordHtml(md) {
+        // Converts markdown to clean HTML suitable for Word
+        let h = md
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/^#### (.+)$/gm, '<h4>$1</h4>')
+            .replace(/^### (.+)$/gm,  '<h3>$1</h3>')
+            .replace(/^## (.+)$/gm,   '<h2>$1</h2>')
+            .replace(/^# (.+)$/gm,    '<h1>$1</h1>')
+            .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
+            .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.+?)\*/g,     '<em>$1</em>')
+            .replace(/^---+$/gm, '<hr>')
+            .replace(/^[\-\*] (.+)$/gm, '<li>$1</li>')
+            .replace(/^\d+\. (.+)$/gm,  '<li>$1</li>')
+            .replace(/((?:<li>.*<\/li>\n?)+)/g, '<ul>$1</ul>')
+            .replace(/`([^`]+)`/g, '<code>$1</code>')
+            .replace(/\n{2,}/g, '</p><p>')
+            .replace(/\n/g, '<br>');
+        return `<p>${h}</p>`;
+    }
+
+    function downloadTxt(containerId) {
+        const md   = _resultStore[containerId] || '';
+        const text = mdToPlainText(md);
         const a = document.createElement('a');
         a.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(text);
         a.download = 'content.txt';
