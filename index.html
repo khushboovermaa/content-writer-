@@ -140,6 +140,16 @@
         }
         .copy-snippet-btn:hover { background: rgba(52,211,153,0.25); }
 
+        /* ── Output option checkboxes ── */
+        .opt-label {
+            display:flex; align-items:center; gap:8px; font-size:13px; color:#cbd5e1;
+            cursor:pointer; padding:8px 12px; border-radius:8px;
+            background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06);
+            transition:all 0.2s;
+        }
+        .opt-label:hover { background:rgba(96,165,250,0.08); border-color:rgba(96,165,250,0.2); }
+        .opt-cb { accent-color:#60a5fa; width:14px; height:14px; flex-shrink:0; }
+
         /* ── URL History Dropdown ── */
         .url-input-wrap { position: relative; }
         .url-history-btn {
@@ -294,40 +304,174 @@
         <!-- GENERATE -->
         <div id="generate" class="sub-content">
             <div class="tool-section">
-                <h2 class="section-title">Generate SEO-Optimized Content</h2>
-                <p class="info-text">Generate high-quality, E-E-A-T compliant content from keywords.</p>
+                <h2 class="section-title">🚀 Generate Rich SEO Content</h2>
+                <p class="info-text">The more you fill in, the richer and more targeted your content will be. All sections marked <span style="color:#ef4444;">*</span> are required.</p>
+
+                <!-- ── BLOCK 1: Keywords ── -->
+                <div style="font-size:11px;font-weight:700;color:#60a5fa;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid rgba(96,165,250,0.15);">📌 Keywords</div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label class="form-label">Primary Keyword</label>
-                        <input type="text" class="form-input" id="primaryKeyword" placeholder="Main target keyword">
+                        <label class="form-label">Primary Keyword <span style="color:#ef4444;">*</span></label>
+                        <input type="text" class="form-input" id="primaryKeyword" placeholder="e.g., SEO services in Delhi">
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Secondary Keywords</label>
-                        <input type="text" class="form-input" id="secondaryKeywords" placeholder="keyword1, keyword2, keyword3">
+                        <label class="form-label">Secondary / LSI Keywords</label>
+                        <input type="text" class="form-input" id="secondaryKeywords" placeholder="e.g., search rankings, organic traffic, on-page SEO">
                     </div>
                 </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Internal Linking Anchor Text <span style="font-size:11px;color:#64748b;font-weight:400;">anchor words for your pages</span></label>
+                        <input type="text" class="form-input" id="interLinkKeywords" placeholder="e.g., on-page SEO, technical audit, link building">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Internal URLs to Link To <span style="font-size:11px;color:#64748b;font-weight:400;">one per line</span></label>
+                        <textarea class="form-textarea" id="interLinkUrls" style="min-height:68px;" placeholder="https://yoursite.com/on-page-seo&#10;https://yoursite.com/technical-audit"></textarea>
+                    </div>
+                </div>
+
+                <!-- ── BLOCK 2: Page & Audience ── -->
+                <div style="font-size:11px;font-weight:700;color:#34d399;text-transform:uppercase;letter-spacing:1px;margin:20px 0 10px;padding-bottom:6px;border-bottom:1px solid rgba(52,211,153,0.15);">🎯 Page & Audience</div>
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">Page Type</label>
                         <select class="form-select" id="genPageType">
-                            <option value="blog">Blog Post</option>
+                            <option value="blog">Blog Post / Article</option>
                             <option value="service">Service Page</option>
                             <option value="homepage">Homepage</option>
                             <option value="case-study">Case Study</option>
+                            <option value="landing">Landing Page</option>
+                            <option value="pillar">Pillar / Hub Page</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Target Audience</label>
-                        <input type="text" class="form-input" id="targetAudience" placeholder="e.g., Small business owners">
+                        <label class="form-label">Search Intent <span style="color:#ef4444;">*</span></label>
+                        <select class="form-select" id="searchIntent">
+                            <option value="informational">Informational — reader wants to learn</option>
+                            <option value="commercial">Commercial — reader is comparing options</option>
+                            <option value="transactional">Transactional — reader wants to buy / hire</option>
+                            <option value="navigational">Navigational — reader wants a specific brand/page</option>
+                        </select>
                     </div>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Your Company/Brand Info</label>
-                    <textarea class="form-textarea" id="brandInfo" placeholder="Brief description of your company..." style="min-height:80px;"></textarea>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Target Audience <span style="color:#ef4444;">*</span></label>
+                        <input type="text" class="form-input" id="targetAudience" placeholder="e.g., Small business owners in India">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Audience Knowledge Level</label>
+                        <select class="form-select" id="audienceLevel">
+                            <option value="beginner">Beginner — explain everything simply</option>
+                            <option value="intermediate" selected>Intermediate — some background knowledge</option>
+                            <option value="expert">Expert — technical depth, skip basics</option>
+                        </select>
+                    </div>
                 </div>
+
+                <!-- ── BLOCK 3: Content Style ── -->
+                <div style="font-size:11px;font-weight:700;color:#f59e0b;text-transform:uppercase;letter-spacing:1px;margin:20px 0 10px;padding-bottom:6px;border-bottom:1px solid rgba(245,158,11,0.15);">✍️ Content Style</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Tone of Voice</label>
+                        <select class="form-select" id="toneOfVoice">
+                            <option value="professional">Professional & Authoritative</option>
+                            <option value="conversational">Conversational & Friendly</option>
+                            <option value="educational">Educational & Informative</option>
+                            <option value="persuasive">Persuasive & Sales-Focused</option>
+                            <option value="technical">Technical & Expert-Level</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Content Length</label>
+                        <select class="form-select" id="contentLength">
+                            <option value="short">Short — 600–900 words</option>
+                            <option value="medium" selected>Medium — 1000–1500 words</option>
+                            <option value="long">Long — 1800–2500 words</option>
+                            <option value="pillar">Pillar — 3000+ words</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Originality Signal</label>
+                        <select class="form-select" id="originalitySignal">
+                            <option value="none">None specified</option>
+                            <option value="data">Original data / statistics</option>
+                            <option value="case">Real case study / client example</option>
+                            <option value="quote">Named expert quote</option>
+                            <option value="framework">Unique framework or methodology</option>
+                            <option value="experience">First-hand experience narrative</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Originality Detail <span style="font-size:11px;color:#64748b;font-weight:400;">describe your data / case / quote</span></label>
+                        <input type="text" class="form-input" id="originalityDetail" placeholder="e.g., We grew a client's traffic by 340% in 6 months using...">
+                    </div>
+                </div>
+
+                <!-- ── BLOCK 4: Advanced SEO Signals ── -->
+                <div style="font-size:11px;font-weight:700;color:#a78bfa;text-transform:uppercase;letter-spacing:1px;margin:20px 0 10px;padding-bottom:6px;border-bottom:1px solid rgba(167,139,250,0.15);">⚙️ Advanced SEO Signals</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Is this a YMYL Topic?</label>
+                        <select class="form-select" id="ymylType">
+                            <option value="no">No — standard topic</option>
+                            <option value="finance">Yes — Finance / Money</option>
+                            <option value="health">Yes — Health / Medical</option>
+                            <option value="legal">Yes — Legal / Law</option>
+                            <option value="safety">Yes — Safety / Security</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Topic Cluster Role</label>
+                        <select class="form-select" id="clusterRole">
+                            <option value="standalone">Standalone article</option>
+                            <option value="pillar">Pillar page (links out to clusters)</option>
+                            <option value="cluster">Cluster page (links back to pillar)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Pillar Page URL <span style="font-size:11px;color:#64748b;font-weight:400;">if this is a cluster page</span></label>
+                        <input type="text" class="form-input" id="pillarUrl" placeholder="https://yoursite.com/main-topic">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Content Published / Review Date</label>
+                        <input type="text" class="form-input" id="publishDate" placeholder="e.g., April 2025 — for freshness signal">
+                    </div>
+                </div>
+
+                <!-- ── BLOCK 5: Brand ── -->
+                <div style="font-size:11px;font-weight:700;color:#fb7185;text-transform:uppercase;letter-spacing:1px;margin:20px 0 10px;padding-bottom:6px;border-bottom:1px solid rgba(251,113,133,0.15);">🏢 Brand</div>
+                <div class="form-group">
+                    <label class="form-label">Your Company / Brand Info</label>
+                    <textarea class="form-textarea" id="brandInfo" style="min-height:72px;" placeholder="e.g., WildNet Technologies — a Delhi-based digital marketing agency with 12+ years of experience, 500+ clients across India and the UK, specialists in SEO, PPC, and content marketing."></textarea>
+                </div>
+
+                <!-- ── OUTPUT OPTIONS ── -->
+                <div style="background:rgba(15,23,42,0.5);border:1px solid rgba(96,165,250,0.2);border-radius:12px;padding:18px;margin-bottom:22px;">
+                    <div style="font-size:12px;font-weight:700;color:#60a5fa;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:14px;">📦 Include in Output</div>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;">
+                        <label class="opt-label"><input type="checkbox" id="optMeta"      checked class="opt-cb"> 📋 Meta Title + URL Slug + Description</label>
+                        <label class="opt-label"><input type="checkbox" id="optFaq"       checked class="opt-cb"> ❓ 5–6 FAQs (PAA-targeted)</label>
+                        <label class="opt-label"><input type="checkbox" id="optTakeaways" checked class="opt-cb"> 💡 Key Takeaways box</label>
+                        <label class="opt-label"><input type="checkbox" id="optTable"     checked class="opt-cb"> 📊 Comparison Table (if relevant)</label>
+                        <label class="opt-label"><input type="checkbox" id="optExtLinks"  checked class="opt-cb"> 🔗 External Authority Links</label>
+                        <label class="opt-label"><input type="checkbox" id="optSchema"          class="opt-cb"> 🧩 FAQ Schema JSON-LD</label>
+                        <label class="opt-label"><input type="checkbox" id="optGeo"       checked class="opt-cb"> 🤖 AI Overview / GEO Block</label>
+                        <label class="opt-label"><input type="checkbox" id="optCluster"         class="opt-cb"> 🗂️ Topic Cluster Suggestions</label>
+                        <label class="opt-label"><input type="checkbox" id="optReadability"checked class="opt-cb"> 📖 Readability Score + Tips</label>
+                        <label class="opt-label"><input type="checkbox" id="optPassage"   checked class="opt-cb"> 🔍 Passage Indexing Optimisation</label>
+                        <label class="opt-label"><input type="checkbox" id="optMultiFormat"     class="opt-cb"> 🖼️ Multi-Format Suggestions</label>
+                        <label class="opt-label"><input type="checkbox" id="optFreshness" checked class="opt-cb"> 📅 Freshness Signal Statements</label>
+                    </div>
+                </div>
+
                 <div class="button-group">
-                    <button class="btn btn-primary" onclick="generateContent()"><span>🚀</span> Generate</button>
-                    <button class="btn btn-secondary" onclick="document.getElementById('primaryKeyword').value='';document.getElementById('secondaryKeywords').value='';document.getElementById('targetAudience').value='';document.getElementById('brandInfo').value='';document.getElementById('generateResults').innerHTML='';">Clear</button>
+                    <button class="btn btn-primary" onclick="generateContent()"><span>🚀</span> Generate Rich Content</button>
+                    <button class="btn btn-secondary" onclick="clearGenerate()">Clear All</button>
                 </div>
                 <div id="generateResults" class="results-container"></div>
             </div>
@@ -642,81 +786,186 @@ Write the content now. Make it feel like it was written by a real expert who gen
         }
     }
 
+    function clearGenerate() {
+        ['primaryKeyword','secondaryKeywords','interLinkKeywords','interLinkUrls',
+         'targetAudience','brandInfo','originalityDetail','pillarUrl','publishDate'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = '';
+        });
+        document.getElementById('generateResults').innerHTML = '';
+    }
+
     // ── GENERATE ──────────────────────────────────────────────────────────────────
     async function generateContent() {
-        const primaryKeyword = document.getElementById('primaryKeyword').value.trim();
+        const primaryKeyword    = document.getElementById('primaryKeyword').value.trim();
         const secondaryKeywords = document.getElementById('secondaryKeywords').value.trim();
-        const pageType = document.getElementById('genPageType').value;
-        const audience = document.getElementById('targetAudience').value.trim();
-        const brandInfo = document.getElementById('brandInfo').value.trim();
+        const interLinkKw       = document.getElementById('interLinkKeywords').value.trim();
+        const interLinkUrls     = document.getElementById('interLinkUrls').value.trim();
+        const pageType          = document.getElementById('genPageType').value;
+        const searchIntent      = document.getElementById('searchIntent').value;
+        const audience          = document.getElementById('targetAudience').value.trim();
+        const audienceLevel     = document.getElementById('audienceLevel').value;
+        const tone              = document.getElementById('toneOfVoice').value;
+        const length            = document.getElementById('contentLength').value;
+        const origSignal        = document.getElementById('originalitySignal').value;
+        const origDetail        = document.getElementById('originalityDetail').value.trim();
+        const ymyl              = document.getElementById('ymylType').value;
+        const clusterRole       = document.getElementById('clusterRole').value;
+        const pillarUrl         = document.getElementById('pillarUrl').value.trim();
+        const publishDate       = document.getElementById('publishDate').value.trim();
+        const brandInfo         = document.getElementById('brandInfo').value.trim();
+
+        // Output toggles
+        const optMeta        = document.getElementById('optMeta').checked;
+        const optFaq         = document.getElementById('optFaq').checked;
+        const optTakeaways   = document.getElementById('optTakeaways').checked;
+        const optTable       = document.getElementById('optTable').checked;
+        const optExtLinks    = document.getElementById('optExtLinks').checked;
+        const optSchema      = document.getElementById('optSchema').checked;
+        const optGeo         = document.getElementById('optGeo').checked;
+        const optCluster     = document.getElementById('optCluster').checked;
+        const optReadability = document.getElementById('optReadability').checked;
+        const optPassage     = document.getElementById('optPassage').checked;
+        const optMultiFormat = document.getElementById('optMultiFormat').checked;
+        const optFreshness   = document.getElementById('optFreshness').checked;
 
         if (!primaryKeyword || !audience) {
-            showError('generateResults', 'Please provide primary keyword and target audience');
+            showError('generateResults', 'Primary keyword and target audience are required.');
             return;
         }
 
-        showLoading('generateResults', 'Generating content…');
+        showLoading('generateResults', 'Building your rich content brief… 30–60 seconds');
 
-        const pageGuides = {
-            blog: 'Blog Post - 2000+ words',
-            service: 'Service Page - 1000+ words',
-            homepage: 'Homepage',
-            'case-study': 'Case Study - 800-2000 words'
-        };
+        // ── Lookup maps ──────────────────────────────────
+        const pageGuides = { blog:'Blog Post / Article', service:'Service Page', homepage:'Homepage', 'case-study':'Case Study', landing:'Landing Page', pillar:'Pillar / Hub Page' };
+        const intentGuide = { informational:'Informational — reader wants to learn, not buy. Prioritise depth, clarity, and practical value.', commercial:'Commercial Investigation — reader is comparing options. Include comparisons, pros/cons, and evidence-backed recommendations.', transactional:'Transactional — reader is ready to act. Lead with trust signals, clear CTAs, pricing context, and social proof.', navigational:'Navigational — reader is looking for a specific brand or page. Confirm entity clearly and provide direct pathways.' };
+        const levelGuide  = { beginner:'Beginner — define all terms, avoid jargon, use analogies.', intermediate:'Intermediate — assume basic knowledge, explain nuances.', expert:'Expert — skip basics, go deep, use precise technical language.' };
+        const toneGuide   = { professional:'Professional and authoritative', conversational:'Conversational and warm, using "you"', educational:'Educational and clear — step-by-step', persuasive:'Persuasive — outcome-focused with strong CTAs', technical:'Technical — expert-level depth' };
+        const lengthGuide = { short:'600–900 words', medium:'1000–1500 words', long:'1800–2500 words', pillar:'3000+ words (comprehensive pillar page)' };
+        const origMap     = { none:'', data:'Include this original data point naturally in the content', case:'Weave this real case study into the content as a specific example', quote:'Attribute this expert quote naturally within the relevant section', framework:'Present this framework clearly — give it a name, explain each part', experience:'Write from this first-hand experience perspective in first person where appropriate' };
 
-        const prompt = `You are a senior content strategist who writes strictly by Google's people-first content guidelines. Create original content that a real expert would be proud to publish.
+        // ── Internal links ──────────────────────────────
+        let internalLinksBlock = 'No internal links specified.';
+        if (interLinkKw || interLinkUrls) {
+            const kwList  = interLinkKw.split(',').map(s => s.trim()).filter(Boolean);
+            const urlList = interLinkUrls.split(/[\n,]/).map(s => s.trim()).filter(Boolean);
+            const pairs   = kwList.map((kw, i) => `  - Anchor: "${kw}" → URL: ${urlList[i] || '[URL not provided]'}`).join('\n');
+            internalLinksBlock = `INTERNAL LINKS — embed these naturally in the body copy at genuinely relevant points:\n${pairs || '  Keywords: ' + interLinkKw + '\n  URLs: ' + interLinkUrls}\nFormat as [anchor text](URL). Never force — only include where contextually appropriate.`;
+        }
 
-KEYWORD: "${primaryKeyword}"
-SECONDARY KEYWORDS: ${secondaryKeywords || 'derive naturally from the topic'}
-PAGE TYPE: ${pageGuides[pageType]}
-TARGET AUDIENCE: ${audience}
-BRAND CONTEXT: ${brandInfo}
+        // ── YMYL block ──────────────────────────────────
+        const ymylBlock = ymyl !== 'no'
+            ? `YMYL TOPIC (${ymyl.toUpperCase()}): This is a Your-Money-Your-Life topic. Apply strict E-E-A-T standards:
+  - Include professional credential signals (author qualifications, institutional references)
+  - Cite authoritative sources: government sites, peer-reviewed research, professional bodies
+  - Add a clear disclaimer (not financial/medical/legal advice)
+  - Be factually conservative — do not overstate or speculate`
+            : '';
 
-===== GOOGLE GUIDELINES TO FOLLOW =====
+        // ── Topic cluster block ─────────────────────────
+        const clusterBlock = clusterRole !== 'standalone'
+            ? `TOPIC CLUSTER ROLE: This is a ${clusterRole === 'pillar' ? 'PILLAR PAGE — link out to 5–6 related subtopic cluster pages at natural points in the content' : 'CLUSTER PAGE — link back to the pillar page at ' + (pillarUrl || '[pillar URL not provided]') + ' at least twice in the content'}.`
+            : '';
 
-PEOPLE-FIRST (Google Search Central):
-- Write for the reader's actual goal, not to rank. Every sentence must serve the human.
-- Fully satisfy search intent — reader should leave with a complete answer.
-- Demonstrate first-hand experience: use specific examples, real numbers, practical observations.
-- No padding, no filler, no "it's important to note that" hedging.
+        // ── Originality block ───────────────────────────
+        const origBlock = origSignal !== 'none' && origDetail
+            ? `ORIGINALITY SIGNAL (${origSignal}): ${origMap[origSignal] || ''}\nDetail: "${origDetail}"`
+            : '';
 
-AI CONTENT GUIDANCE (Google, 2023):
-- Content must show genuine human insight and editorial judgment — not generic auto-generated text.
-- Every claim must be accurate and verifiable. Cite real sources where applicable.
-- Write with a clear human voice: take positions, have opinions, be direct.
+        // ── Freshness block ─────────────────────────────
+        const freshnessBlock = optFreshness
+            ? `FRESHNESS SIGNALS: Include a "Last reviewed: ${publishDate || 'April 2025'}" note. Use present-tense currency markers ("As of ${publishDate || '2025'}…"). Flag any statistics that will need updating and note when they should be reviewed.`
+            : '';
 
-E-E-A-T SIGNALS:
-- EXPERIENCE: Include practical, hands-on insights a real practitioner would share.
-- EXPERTISE: Use precise industry language correctly. Avoid buzzwords without substance.
-- AUTHORITATIVENESS: Reference known standards, research, or named industry figures.
-- TRUSTWORTHINESS: Be honest about limitations and trade-offs. Don't over-promise.
+        // ── Output sections ─────────────────────────────
+        const sections = [];
+        if (optMeta)        sections.push(`## META SECTION\nMeta Title: under 60 chars, primary keyword near front\nURL Slug: lowercase hyphenated, under 75 chars\nMeta Description: under 155 chars — include keyword + clear value statement + implicit CTA`);
+        if (optGeo)         sections.push(`## AI OVERVIEW / GEO BLOCK\nA standalone 3–5 sentence summary block at the very top of the content (after H1) that directly answers the topic in plain language. Label it "Quick Answer:". Write it so Google's AI Overview can extract and cite it. Use precise entity names, factual statements, no hedging.`);
+        if (optTakeaways)   sections.push(`## KEY TAKEAWAYS\n4–6 bullet points of the most important things the reader will learn. Place this near the top after the intro or GEO block. Each bullet should be a complete, standalone insight — not a teaser.`);
+        if (optTable)       sections.push(`## COMPARISON TABLE\nIf the topic naturally suits comparison (tools, approaches, plans, providers), include a markdown table with 3–5 columns and 4–6 rows. Add a brief 1-sentence conclusion below it. Skip entirely if not relevant.`);
+        if (optPassage)     sections.push(`## PASSAGE INDEXING NOTE\nEach H2 section must begin with a 1–2 sentence direct answer to the implicit question that heading represents. This allows Google to index and rank individual passages independently.`);
+        if (optFaq)         sections.push(`## FAQ SECTION\n5–6 questions that real users search on Google (target People Also Ask questions for this keyword). Each answer must be 2–4 sentences: direct, specific, and genuinely useful. Never give vague answers like "it depends" without then actually explaining what it depends on.`);
+        if (optExtLinks)    sections.push(`## EXTERNAL AUTHORITY LINKS\n3–5 real links to authoritative external sources (government bodies, major publications, Google documentation, leading research, industry standards). Format: [Source Name](real URL) — one sentence explaining why it is relevant. Only include URLs you are confident exist and are accurate.`);
+        if (optCluster)     sections.push(`## TOPIC CLUSTER SUGGESTIONS\nList 5–6 related articles this site should also publish to build topical authority on this subject. For each: suggested H1, target keyword, brief (1 sentence) rationale for why it strengthens the cluster.`);
+        if (optReadability) sections.push(`## READABILITY ASSESSMENT\nEstimate the Flesch-Kincaid reading level of this content (target Grade 7–9 for general audiences, up to Grade 12 for expert). List 2–3 specific sentences from the content that could be simplified, and provide the simpler version.`);
+        if (optMultiFormat) sections.push(`## MULTI-FORMAT SUGGESTIONS\nFor each major section, suggest what visual or media format would enhance it: infographic, data chart, video embed, screenshot, pull quote, interactive tool, or image. Provide a one-line brief for each suggestion.`);
+        if (optSchema)      sections.push(`## FAQ SCHEMA (JSON-LD)\nProduce a valid JSON-LD FAQ schema for all FAQ Q&As. Wrap in <script type="application/ld+json"> tags. Ensure all special characters in answers are properly escaped.`);
 
-===== STRICTLY AVOID =====
-- Generic tip lists ("Tip 1: Be consistent") with no real depth
-- Robotic phrases: "In conclusion", "Furthermore", "It is worth noting"
-- Keyword stuffing or forcing "${primaryKeyword}" unnaturally
-- Sections that exist only to add word count
-- Vague claims without supporting evidence or examples
+        const prompt = `You are a world-class SEO content strategist. Your task is to produce the richest, most thorough, publish-ready content possible for the brief below, following every Google guideline precisely.
 
-===== DELIVER =====
-- A compelling H1 that speaks directly to what ${audience} actually want to achieve
-- An opening paragraph that answers the core question in 2–3 sentences (answer-first)
-- Body sections with H2/H3 headers that are genuinely informative, not just keyword containers
-- At least 2 specific examples, scenarios, or data points embedded naturally in the text
-- A short expertise/author signal (who should write this and why they'd know)
-- FAQ section with 4–5 direct, honest questions and answers
-- Meta title (under 60 chars) and meta description (under 155 chars)
-- A content quality score out of 100 with a one-line reason
+╔══════════════════════════════════════╗
+  CONTENT BRIEF
+╚══════════════════════════════════════╝
 
-Write it now. Make it feel like it came from someone who genuinely knows this topic and cares about helping ${audience}.`;
+Primary keyword:    "${primaryKeyword}"
+Secondary / LSI:    ${secondaryKeywords || 'derive naturally — use the full semantic field around this topic'}
+Page type:          ${pageGuides[pageType] || pageType}
+Search intent:      ${intentGuide[searchIntent]}
+Target audience:    ${audience}
+Audience level:     ${levelGuide[audienceLevel]}
+Tone:               ${toneGuide[tone]}
+Target length:      ${lengthGuide[length]}
+Brand context:      ${brandInfo || 'not provided — write with generic but credible authority'}
+
+${internalLinksBlock}
+${ymylBlock}
+${clusterBlock}
+${origBlock}
+${freshnessBlock}
+
+╔══════════════════════════════════════╗
+  GOOGLE PEOPLE-FIRST RULES — ALL MANDATORY
+╚══════════════════════════════════════╝
+
+1. Write for the reader's actual goal — not to game search rankings.
+2. Fully satisfy search intent: the reader must not need to look elsewhere after reading this.
+3. Demonstrate real experience: embed specific examples, concrete numbers, and practical observations that only someone with hands-on knowledge would know.
+4. No padding, no filler, no hedging sentences ("it is important to note that…").
+5. Human editorial voice — take positions, be direct, have opinions. Do not be neutral on everything.
+6. Use "${primaryKeyword}" naturally. Do not force it into every paragraph.
+7. Back up every factual claim with named sources, data points, or verifiable references.
+8. Be honest: acknowledge limitations, trade-offs, and when something "depends" — then explain exactly what it depends on.
+9. Entity clarity: name your topic, brand, locations, and related entities precisely so Google's Knowledge Graph can resolve them correctly.
+10. Each H2 section should be able to stand alone as a complete answer (passage indexing).
+
+╔══════════════════════════════════════╗
+  BANNED PATTERNS — NEVER USE THESE
+╚══════════════════════════════════════╝
+
+- "In conclusion" / "To summarise" / "Furthermore" / "It is worth noting"
+- Generic tip lists with no depth: "Tip 1: Be consistent. Tip 2: Stay focused."
+- Passive hedging: "It may be advisable to consider possibly…"
+- Keyword stuffing or unnatural repetition of "${primaryKeyword}"
+- Sections that exist only to add word count with no new information
+- Vague claims: "many experts agree" / "studies show" without naming them
+- Promising to answer something in a heading and then not answering it
+
+╔══════════════════════════════════════╗
+  REQUIRED OUTPUT STRUCTURE
+╚══════════════════════════════════════╝
+
+Follow this exact order:
+
+${sections.map((s, i) => `${i + 1}. ${s}`).join('\n\n')}
+
+${sections.length > 0 ? (sections.length + 1) + '.' : '1.'} MAIN CONTENT BODY
+   - H1: compelling, specific — speaks to what ${audience} want to achieve (not just the keyword)
+   - Body sections with H2/H3 headers that are genuine content signposts
+   - Minimum 2–3 concrete real-world examples or scenarios embedded naturally
+   - Short expert/author credential note (1–2 sentences) near the top
+   - A strong closing section with a specific, actionable next step for the reader
+
+Write the complete content now. Make every word earn its place.`;
 
         try {
-            const result = await callClaude(prompt, 4000);
+            const result = await callClaude(prompt, 5000);
             displayResults('generateResults', result);
         } catch (error) {
             showError('generateResults', error.message);
         }
     }
+
+
 
     // ── VISUAL HELPERS ────────────────────────────────────────────────────────────
     const DIMS = [
