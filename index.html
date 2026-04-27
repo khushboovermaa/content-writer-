@@ -6,117 +6,81 @@
     <title>AI Content Score Engine - All-in-One Tool</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; width: 100%; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
             background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
             color: #e2e8f0;
             min-height: 100vh;
             padding: 20px;
+            overflow-x: hidden;
         }
         .container { max-width: 1400px; margin: 0 auto; }
-        .header { text-align: center; margin-bottom: 40px; }
+        .header { text-align: center; margin-bottom: 40px; animation: slideDown 0.6s ease-out; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
         .header h1 {
             font-size: 36px; font-weight: 700; margin-bottom: 8px;
             background: linear-gradient(135deg, #60a5fa, #34d399);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
         }
         .header p { color: #cbd5e1; font-size: 16px; }
-        .main-tabs {
-            display: flex; gap: 12px; margin-bottom: 32px;
-            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
-        }
+        .main-tabs { display: flex; gap: 12px; margin-bottom: 32px; border-bottom: 2px solid rgba(255,255,255,0.1); flex-wrap: wrap; }
         .main-tab-btn {
-            padding: 12px 20px; background: transparent; border: none;
-            color: #94a3b8; cursor: pointer; font-size: 15px; font-weight: 500;
-            border-bottom: 3px solid transparent; transition: all 0.3s;
+            padding: 12px 20px; background: transparent; border: none; color: #94a3b8;
+            cursor: pointer; font-size: 15px; font-weight: 500; border-bottom: 3px solid transparent;
+            transition: all 0.3s; position: relative; top: 2px;
         }
         .main-tab-btn:hover { color: #cbd5e1; }
         .main-tab-btn.active { color: #60a5fa; border-bottom-color: #60a5fa; }
         .main-content { display: none; }
-        .main-content.active { display: block; }
-        .sub-tabs {
-            display: flex; gap: 12px; margin-bottom: 24px;
-            border-bottom: 2px solid rgba(255, 255, 255, 0.05);
-        }
+        .main-content.active { display: block; animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .sub-tabs { display: flex; gap: 12px; margin-bottom: 24px; border-bottom: 2px solid rgba(255,255,255,0.05); flex-wrap: wrap; }
         .sub-tab-btn {
-            padding: 10px 16px; background: transparent; border: none;
-            color: #94a3b8; cursor: pointer; font-size: 14px; font-weight: 500;
-            border-bottom: 2px solid transparent; transition: all 0.3s;
+            padding: 10px 16px; background: transparent; border: none; color: #94a3b8;
+            cursor: pointer; font-size: 14px; font-weight: 500; border-bottom: 2px solid transparent; transition: all 0.3s;
         }
         .sub-tab-btn:hover { color: #cbd5e1; }
         .sub-tab-btn.active { color: #34d399; border-bottom-color: #34d399; }
         .sub-content { display: none; }
         .sub-content.active { display: block; }
         .tool-section {
-            background: rgba(30, 41, 59, 0.8); backdrop-filter: blur(10px);
-            border: 1px solid rgba(148, 163, 184, 0.2);
-            border-radius: 16px; padding: 32px; margin-bottom: 24px;
+            background: rgba(30,41,59,0.8); backdrop-filter: blur(10px);
+            border: 1px solid rgba(148,163,184,0.2); border-radius: 16px;
+            padding: 32px; margin-bottom: 24px; animation: slideUp 0.6s ease-out;
         }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .section-title { font-size: 20px; font-weight: 600; margin-bottom: 24px; color: #f1f5f9; }
         .form-group { margin-bottom: 20px; }
-        .form-label {
-            display: block; font-size: 14px; font-weight: 500;
-            margin-bottom: 8px; color: #cbd5e1;
-        }
+        .form-label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 8px; color: #cbd5e1; }
         .form-input, .form-textarea, .form-select {
-            width: 100%; padding: 12px 16px;
-            background: rgba(15, 23, 42, 0.6);
-            border: 1px solid rgba(148, 163, 184, 0.3);
-            border-radius: 8px; color: #e2e8f0; font-size: 14px;
-            font-family: inherit; transition: all 0.3s;
+            width: 100%; padding: 12px 16px; background: rgba(15,23,42,0.6);
+            border: 1px solid rgba(148,163,184,0.3); border-radius: 8px;
+            color: #e2e8f0; font-size: 14px; font-family: inherit; transition: all 0.3s;
         }
         .form-input:focus, .form-textarea:focus, .form-select:focus {
-            outline: none; border-color: #60a5fa;
-            background: rgba(15, 23, 42, 0.9);
-            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
+            outline: none; border-color: #60a5fa; background: rgba(15,23,42,0.9);
+            box-shadow: 0 0 0 3px rgba(96,165,250,0.1);
         }
-        .form-textarea { resize: vertical; min-height: 120px; font-family: 'Monaco', monospace; font-size: 13px; }
+        .form-select option { background: #1e293b; color: #e2e8f0; }
+        .form-textarea { resize: vertical; min-height: 120px; font-family: 'Monaco','Menlo',monospace; font-size: 13px; }
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-        @media (max-width: 768px) { .form-row { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) { .form-row { grid-template-columns: 1fr; } .header h1 { font-size: 28px; } }
         .button-group { display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap; }
-        .btn {
-            padding: 12px 24px; border: none; border-radius: 8px;
-            font-size: 14px; font-weight: 600; cursor: pointer;
-            transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px;
-        }
-        .btn-primary {
-            background: linear-gradient(135deg, #60a5fa, #3b82f6);
-            color: white; box-shadow: 0 4px 15px rgba(96, 165, 250, 0.4);
-        }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(96, 165, 250, 0.6); }
-        .btn-secondary {
-            background: rgba(148, 163, 184, 0.1); color: #cbd5e1;
-            border: 1px solid rgba(148, 163, 184, 0.3);
-        }
-        .btn-secondary:hover { background: rgba(148, 163, 184, 0.2); }
+        .btn { padding: 12px 24px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-primary { background: linear-gradient(135deg, #60a5fa, #3b82f6); color: white; box-shadow: 0 4px 15px rgba(96,165,250,0.4); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(96,165,250,0.6); }
+        .btn-primary:active { transform: translateY(0); }
+        .btn-secondary { background: rgba(148,163,184,0.1); color: #cbd5e1; border: 1px solid rgba(148,163,184,0.3); }
+        .btn-secondary:hover { background: rgba(148,163,184,0.2); }
         .results-container { margin-top: 32px; }
-        .content-box {
-            background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(148, 163, 184, 0.2);
-            border-radius: 12px; padding: 20px;
-        }
-        .content-preview {
-            background: rgba(15, 23, 42, 0.6); padding: 16px; border-radius: 8px;
-            font-size: 13px; line-height: 1.6; color: #cbd5e1;
-            max-height: 400px; overflow-y: auto; white-space: pre-wrap; word-wrap: break-word;
-        }
+        .content-box { background: rgba(15,23,42,0.8); border: 1px solid rgba(148,163,184,0.2); border-radius: 12px; padding: 20px; }
+        .content-preview { background: rgba(15,23,42,0.6); padding: 16px; border-radius: 8px; font-size: 13px; line-height: 1.6; color: #cbd5e1; max-height: 400px; overflow-y: auto; white-space: pre-wrap; word-wrap: break-word; }
         .loading { display: flex; align-items: center; gap: 8px; color: #cbd5e1; font-size: 14px; }
-        .spinner {
-            width: 16px; height: 16px; border: 2px solid rgba(96, 165, 250, 0.3);
-            border-top-color: #60a5fa; border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
+        .spinner { width: 16px; height: 16px; border: 2px solid rgba(96,165,250,0.3); border-top-color: #60a5fa; border-radius: 50%; animation: spin 0.8s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
-        .success-message {
-            background: rgba(52, 211, 153, 0.1); border: 1px solid rgba(52, 211, 153, 0.3);
-            color: #86efac; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px;
-        }
-        .error-message {
-            background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3);
-            color: #fca5a5; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px;
-            white-space: pre-wrap; font-size: 12px;
-        }
+        .success-message { background: rgba(52,211,153,0.1); border: 1px solid rgba(52,211,153,0.3); color: #86efac; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; }
+        .error-message { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #fca5a5; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; }
         .info-text { color: #94a3b8; font-size: 14px; margin-bottom: 24px; }
         .guide-content { color: #cbd5e1; line-height: 1.8; }
         .guide-content h2 { color: #60a5fa; margin-top: 32px; margin-bottom: 16px; font-size: 20px; }
@@ -124,463 +88,419 @@
         .guide-content p { margin-bottom: 12px; }
         .guide-content ul, .guide-content ol { margin-left: 20px; margin-bottom: 12px; }
         .guide-content li { margin-bottom: 8px; }
-        .guide-content code { background: rgba(96, 165, 250, 0.2); padding: 2px 6px; border-radius: 4px; color: #a78bfa; }
+        .guide-content code { background: rgba(15,23,42,0.6); padding: 2px 6px; border-radius: 4px; color: #a78bfa; font-family: 'Monaco',monospace; font-size: 12px; }
+        .guide-content pre { background: rgba(15,23,42,0.8); padding: 16px; border-radius: 8px; overflow-x: auto; margin: 16px 0; color: #a78bfa; font-family: 'Monaco',monospace; font-size: 12px; }
+        .checklist { list-style: none; margin-left: 0; }
+        .checklist li { padding: 8px 0; padding-left: 24px; position: relative; }
+        .checklist li:before { content: "✓"; position: absolute; left: 0; color: #34d399; font-weight: bold; }
+        .warning-box { background: rgba(239,68,68,0.1); border-left: 3px solid #ef4444; padding: 16px; border-radius: 6px; margin: 16px 0; }
+        .warning-box strong { color: #fca5a5; }
+        .success-box { background: rgba(52,211,153,0.1); border-left: 3px solid #34d399; padding: 16px; border-radius: 6px; margin: 16px 0; }
+        .success-box strong { color: #86efac; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🎯 Content Score Engine</h1>
-            <p>All-in-One AI Content Writing Tool | Google E-E-A-T Optimized</p>
+<div class="container">
+    <div class="header">
+        <h1>🎯 Content Score Engine</h1>
+        <p>All-in-One AI Content Writing Tool | Google E-E-A-T Optimized</p>
+    </div>
+
+    <div class="main-tabs">
+        <button class="main-tab-btn active" onclick="switchMainTab(event,'tool')">🛠️ Tool</button>
+        <button class="main-tab-btn" onclick="switchMainTab(event,'guide')">📚 Guide &amp; Help</button>
+    </div>
+
+    <!-- TOOL TAB -->
+    <div id="tool" class="main-content active">
+        <div class="sub-tabs">
+            <button class="sub-tab-btn active" onclick="switchSubTab(event,'compare')">📊 Compare URLs</button>
+            <button class="sub-tab-btn" onclick="switchSubTab(event,'rewrite')">✨ Rewrite</button>
+            <button class="sub-tab-btn" onclick="switchSubTab(event,'generate')">🚀 Generate</button>
         </div>
-        
-        <div class="main-tabs">
-            <button class="main-tab-btn active" onclick="switchMainTab(event, 'tool')">🛠️ Tool</button>
-            <button class="main-tab-btn" onclick="switchMainTab(event, 'guide')">📚 Guide & Help</button>
-        </div>
-        
-        <!-- TOOL TAB -->
-        <div id="tool" class="main-content active">
-            <div class="sub-tabs">
-                <button class="sub-tab-btn active" onclick="switchSubTab(event, 'compare')">📊 Compare URLs</button>
-                <button class="sub-tab-btn" onclick="switchSubTab(event, 'rewrite')">✨ Rewrite</button>
-                <button class="sub-tab-btn" onclick="switchSubTab(event, 'generate')">🚀 Generate</button>
-            </div>
-            
-            <!-- COMPARE -->
-            <div id="compare" class="sub-content active">
-                <div class="tool-section">
-                    <h2 class="section-title">Compare Your Content vs Competitors</h2>
-                    <p class="info-text">Analyze your URL against competitors. Get E-E-A-T scores, gaps, and recommendations.</p>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Your URL</label>
-                        <input type="url" class="form-input" id="yourUrl" placeholder="https://yoursite.com/page">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Competitor URLs (one per line)</label>
-                        <textarea class="form-textarea" id="competitorUrls" placeholder="https://competitor1.com/page&#10;https://competitor2.com/page"></textarea>
-                    </div>
-                    
-                    <div class="button-group">
-                        <button class="btn btn-primary" onclick="analyzeUrls()"><span>⚡</span> Analyze</button>
-                        <button class="btn btn-secondary" onclick="document.getElementById('yourUrl').value=''; document.getElementById('competitorUrls').value=''; document.getElementById('compareResults').innerHTML='';">Clear</button>
-                    </div>
-                    
-                    <div id="compareResults" class="results-container"></div>
+
+        <!-- COMPARE -->
+        <div id="compare" class="sub-content active">
+            <div class="tool-section">
+                <h2 class="section-title">Compare Your Content vs Competitors</h2>
+                <p class="info-text">Analyze your URL against competitors. Get E-E-A-T scores, gaps, and recommendations.</p>
+                <div class="form-group">
+                    <label class="form-label">Your URL</label>
+                    <input type="url" class="form-input" id="yourUrl" placeholder="https://yoursite.com/page">
                 </div>
+                <div class="form-group">
+                    <label class="form-label">Competitor URLs (one per line)</label>
+                    <textarea class="form-textarea" id="competitorUrls" placeholder="https://competitor1.com/page&#10;https://competitor2.com/page"></textarea>
+                </div>
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="analyzeUrls()"><span>⚡</span> Analyze</button>
+                    <button class="btn btn-secondary" onclick="document.getElementById('yourUrl').value='';document.getElementById('competitorUrls').value='';document.getElementById('compareResults').innerHTML='';">Clear</button>
+                </div>
+                <div id="compareResults" class="results-container"></div>
             </div>
-            
-            <!-- REWRITE -->
-            <div id="rewrite" class="sub-content">
-                <div class="tool-section">
-                    <h2 class="section-title">Rewrite & Optimize Your Content</h2>
-                    <p class="info-text">Paste your content and get AI-powered rewrites for E-E-A-T, SEO, and AI visibility.</p>
-                    
+        </div>
+
+        <!-- REWRITE -->
+        <div id="rewrite" class="sub-content">
+            <div class="tool-section">
+                <h2 class="section-title">Rewrite &amp; Optimize Your Content</h2>
+                <p class="info-text">Paste your content and get AI-powered rewrites for E-E-A-T, SEO, and AI visibility.</p>
+                <div class="form-group">
+                    <label class="form-label">Target Keyword</label>
+                    <input type="text" class="form-input" id="rewriteKeyword" placeholder="e.g., 'best project management tools'">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Page Type</label>
+                    <select class="form-select" id="pageType">
+                        <option value="blog">Blog Post</option>
+                        <option value="service">Service Page</option>
+                        <option value="homepage">Homepage</option>
+                        <option value="case-study">Case Study</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Your Current Content</label>
+                    <textarea class="form-textarea" id="currentContent" placeholder="Paste your existing content here..."></textarea>
+                </div>
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="rewriteContent()"><span>✨</span> Rewrite</button>
+                    <button class="btn btn-secondary" onclick="document.getElementById('rewriteKeyword').value='';document.getElementById('currentContent').value='';document.getElementById('rewriteResults').innerHTML='';">Clear</button>
+                </div>
+                <div id="rewriteResults" class="results-container"></div>
+            </div>
+        </div>
+
+        <!-- GENERATE -->
+        <div id="generate" class="sub-content">
+            <div class="tool-section">
+                <h2 class="section-title">Generate SEO-Optimized Content</h2>
+                <p class="info-text">Generate high-quality, E-E-A-T compliant content from keywords.</p>
+                <div class="form-row">
                     <div class="form-group">
-                        <label class="form-label">Target Keyword</label>
-                        <input type="text" class="form-input" id="rewriteKeyword" placeholder="e.g., 'best project management tools'">
+                        <label class="form-label">Primary Keyword</label>
+                        <input type="text" class="form-input" id="primaryKeyword" placeholder="Main target keyword">
                     </div>
-                    
+                    <div class="form-group">
+                        <label class="form-label">Secondary Keywords</label>
+                        <input type="text" class="form-input" id="secondaryKeywords" placeholder="keyword1, keyword2, keyword3">
+                    </div>
+                </div>
+                <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">Page Type</label>
-                        <select class="form-select" id="pageType">
+                        <select class="form-select" id="genPageType">
                             <option value="blog">Blog Post</option>
                             <option value="service">Service Page</option>
                             <option value="homepage">Homepage</option>
                             <option value="case-study">Case Study</option>
                         </select>
                     </div>
-                    
                     <div class="form-group">
-                        <label class="form-label">Your Current Content</label>
-                        <textarea class="form-textarea" id="currentContent" placeholder="Paste your existing content here..."></textarea>
+                        <label class="form-label">Target Audience</label>
+                        <input type="text" class="form-input" id="targetAudience" placeholder="e.g., Small business owners">
                     </div>
-                    
-                    <div class="button-group">
-                        <button class="btn btn-primary" onclick="rewriteContent()"><span>✨</span> Rewrite</button>
-                        <button class="btn btn-secondary" onclick="document.getElementById('rewriteKeyword').value=''; document.getElementById('currentContent').value=''; document.getElementById('rewriteResults').innerHTML='';">Clear</button>
-                    </div>
-                    
-                    <div id="rewriteResults" class="results-container"></div>
                 </div>
-            </div>
-            
-            <!-- GENERATE -->
-            <div id="generate" class="sub-content">
-                <div class="tool-section">
-                    <h2 class="section-title">Generate SEO-Optimized Content</h2>
-                    <p class="info-text">Generate high-quality, E-E-A-T compliant content from keywords.</p>
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Primary Keyword</label>
-                            <input type="text" class="form-input" id="primaryKeyword" placeholder="Main target keyword">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Secondary Keywords</label>
-                            <input type="text" class="form-input" id="secondaryKeywords" placeholder="keyword1, keyword2, keyword3">
-                        </div>
-                    </div>
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Page Type</label>
-                            <select class="form-select" id="genPageType">
-                                <option value="blog">Blog Post</option>
-                                <option value="service">Service Page</option>
-                                <option value="homepage">Homepage</option>
-                                <option value="case-study">Case Study</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Target Audience</label>
-                            <input type="text" class="form-input" id="targetAudience" placeholder="e.g., Small business owners">
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Your Company/Brand Info</label>
-                        <textarea class="form-textarea" id="brandInfo" placeholder="Brief description of your company..." style="min-height: 80px;"></textarea>
-                    </div>
-                    
-                    <div class="button-group">
-                        <button class="btn btn-primary" onclick="generateContent()"><span>🚀</span> Generate</button>
-                        <button class="btn btn-secondary" onclick="document.getElementById('primaryKeyword').value=''; document.getElementById('secondaryKeywords').value=''; document.getElementById('targetAudience').value=''; document.getElementById('brandInfo').value=''; document.getElementById('generateResults').innerHTML='';">Clear</button>
-                    </div>
-                    
-                    <div id="generateResults" class="results-container"></div>
+                <div class="form-group">
+                    <label class="form-label">Your Company/Brand Info</label>
+                    <textarea class="form-textarea" id="brandInfo" placeholder="Brief description of your company..." style="min-height:80px;"></textarea>
                 </div>
-            </div>
-        </div>
-        
-        <!-- GUIDE TAB -->
-        <div id="guide" class="main-content">
-            <div class="tool-section guide-content">
-                <h2>📚 Complete User Guide</h2>
-                
-                <h3>🔑 Step 1: Get Your API Key</h3>
-                <ol>
-                    <li>Go to <code>console.anthropic.com</code></li>
-                    <li>Sign up (free account, $5/month credits)</li>
-                    <li>Click "API Keys" in the left sidebar</li>
-                    <li>Click "Create Key"</li>
-                    <li>Copy the key (looks like: <code>sk-ant-...</code>)</li>
-                    <li>Keep it private!</li>
-                </ol>
-                
-                <h3>📊 Feature 1: Compare URLs</h3>
-                <p><strong>What it does:</strong> Analyzes your content vs competitors to find ranking opportunities.</p>
-                <ol>
-                    <li>Paste your URL (e.g., yoursite.com/page)</li>
-                    <li>Paste 1-3 competitor URLs (one per line)</li>
-                    <li>Click "Analyze"</li>
-                    <li>Paste your API key when prompted</li>
-                    <li>Get E-E-A-T scores, gaps, and recommendations</li>
-                </ol>
-                
-                <h3>✨ Feature 2: Rewrite Content</h3>
-                <p><strong>What it does:</strong> Optimizes your existing content for better rankings.</p>
-                <ol>
-                    <li>Enter your target keyword</li>
-                    <li>Select page type (Blog, Service, Homepage, Case Study)</li>
-                    <li>Paste your current content</li>
-                    <li>Click "Rewrite"</li>
-                    <li>Get optimized version ready to copy</li>
-                </ol>
-                
-                <h3>🚀 Feature 3: Generate Content</h3>
-                <p><strong>What it does:</strong> Creates new, high-quality content from scratch.</p>
-                <ol>
-                    <li>Enter primary keyword</li>
-                    <li>Add secondary keywords (optional)</li>
-                    <li>Select page type and target audience</li>
-                    <li>Describe your company/brand</li>
-                    <li>Click "Generate"</li>
-                    <li>Get complete, ready-to-publish content</li>
-                </ol>
-                
-                <h3>💰 Pricing</h3>
-                <ul>
-                    <li><strong>Free Tier:</strong> $5/month in credits (enough for ~100 generations)</li>
-                    <li><strong>Pay As You Go:</strong> Very affordable (~$0.05-0.15 per request)</li>
-                    <li><strong>No Hidden Fees:</strong> Only pay for what you use</li>
-                </ul>
-                
-                <h3>🐛 Troubleshooting</h3>
-                <p><strong>Getting "Failed to fetch"?</strong></p>
-                <ul>
-                    <li>✅ Make sure API key is correct (starts with <code>sk-ant-</code>)</li>
-                    <li>✅ Check you have API credits at console.anthropic.com</li>
-                    <li>✅ Try refreshing the page</li>
-                    <li>✅ Clear browser cache (Ctrl+Shift+Delete)</li>
-                    <li>✅ Try a different browser</li>
-                    <li>✅ Press F12 to open Developer Console for detailed errors</li>
-                </ul>
-                
-                <p><strong>Getting "API Error"?</strong></p>
-                <ul>
-                    <li>✅ Your API key format is wrong</li>
-                    <li>✅ Your API key has expired</li>
-                    <li>✅ You've run out of API credits</li>
-                    <li>✅ Create a new key at console.anthropic.com</li>
-                </ul>
-                
-                <h3>💡 Pro Tips</h3>
-                <ul>
-                    <li><strong>Start with Compare URLs</strong> - Understand your competition first</li>
-                    <li><strong>Be specific</strong> - More detail in inputs = better outputs</li>
-                    <li><strong>Customize output</strong> - Add your real data and brand voice</li>
-                    <li><strong>Include case studies</strong> - Real examples boost E-E-A-T</li>
-                    <li><strong>Update every 6 months</strong> - Freshness matters for rankings</li>
-                    <li><strong>One API key per browser session</strong> - You'll only enter it once</li>
-                </ul>
-                
-                <h3>📋 E-E-A-T Checklist</h3>
-                <ul>
-                    <li>✓ Author name and credentials</li>
-                    <li>✓ Author LinkedIn link</li>
-                    <li>✓ 3+ authoritative citations per 1000 words</li>
-                    <li>✓ Original data or case studies</li>
-                    <li>✓ HTTPS (secured site)</li>
-                    <li>✓ Clear contact information</li>
-                    <li>✓ Privacy policy/Terms of Service</li>
-                    <li>✓ Last updated date visible</li>
-                    <li>✓ Company About page</li>
-                </ul>
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="generateContent()"><span>🚀</span> Generate</button>
+                    <button class="btn btn-secondary" onclick="document.getElementById('primaryKeyword').value='';document.getElementById('secondaryKeywords').value='';document.getElementById('targetAudience').value='';document.getElementById('brandInfo').value='';document.getElementById('generateResults').innerHTML='';">Clear</button>
+                </div>
+                <div id="generateResults" class="results-container"></div>
             </div>
         </div>
     </div>
-    
-    <script>
-        const API_ENDPOINT = "https://api.anthropic.com/v1/messages";
-        let apiKey = null;
-        
-        function switchMainTab(event, tabName) {
-            event.preventDefault();
-            document.querySelectorAll('.main-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.main-tab-btn').forEach(el => el.classList.remove('active'));
-            document.getElementById(tabName).classList.add('active');
-            event.target.classList.add('active');
+
+    <!-- GUIDE TAB -->
+    <div id="guide" class="main-content">
+        <div class="tool-section guide-content">
+            <h2>📚 Complete User Guide</h2>
+            <h3>🎯 Overview</h3>
+            <p>This all-in-one tool helps you create, optimize, and analyze content using Google's E-E-A-T framework and AI visibility best practices.</p>
+
+            <h3>📊 Feature 1: Compare URLs</h3>
+            <p><strong>Purpose:</strong> Analyze your content vs competitors to find ranking opportunities.</p>
+            <p><strong>How to use:</strong></p>
+            <ol>
+                <li>Enter your URL</li>
+                <li>Enter 1-3 competitor URLs (one per line)</li>
+                <li>Click "Analyze"</li>
+                <li>Get E-E-A-T scores, gaps, and recommendations</li>
+            </ol>
+
+            <h3>✨ Feature 2: Rewrite Content</h3>
+            <p><strong>Purpose:</strong> Optimize existing content for better rankings.</p>
+            <ol>
+                <li>Enter your target keyword</li>
+                <li>Select page type</li>
+                <li>Paste your current content</li>
+                <li>Click "Rewrite"</li>
+            </ol>
+
+            <h3>🚀 Feature 3: Generate Content</h3>
+            <p><strong>Purpose:</strong> Create new, high-quality content from scratch.</p>
+            <ol>
+                <li>Enter primary keyword</li>
+                <li>Add secondary keywords (optional)</li>
+                <li>Select page type and target audience</li>
+                <li>Describe your brand</li>
+                <li>Click "Generate"</li>
+            </ol>
+
+            <h3>✅ E-E-A-T Checklist</h3>
+            <ul class="checklist">
+                <li>Author name and bio with credentials</li>
+                <li>Author LinkedIn link</li>
+                <li>3+ authoritative citations per 1000 words</li>
+                <li>Original data, case studies, or examples</li>
+                <li>HTTPS (secured site)</li>
+                <li>Clear contact information</li>
+                <li>Privacy policy / Terms of Service</li>
+                <li>Last updated date visible</li>
+                <li>Company About page</li>
+            </ul>
+
+            <h3>💡 Pro Tips</h3>
+            <div class="success-box">
+                <strong>Start with Compare URLs</strong> — Understand your competition first<br><br>
+                <strong>Be specific</strong> — More detail in inputs = better outputs<br><br>
+                <strong>Customize output</strong> — Add your real data and brand voice<br><br>
+                <strong>Include case studies</strong> — Real examples boost E-E-A-T
+            </div>
+
+            <h3>🐛 Troubleshooting</h3>
+            <div class="warning-box">
+                <strong>If you get an error:</strong> Check your internet connection and try again. The AI sometimes takes longer on complex prompts — wait a moment and retry.
+            </div>
+
+            <p style="margin-top:32px;color:#64748b;font-size:12px;">Built using Google E-E-A-T Guidelines, AI Overview Best Practices, and Latest SEO Standards (2024-2025)</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    const API_ENDPOINT = "https://api.anthropic.com/v1/messages";
+
+    function switchMainTab(event, tabName) {
+        event.preventDefault();
+        document.querySelectorAll('.main-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.main-tab-btn').forEach(el => el.classList.remove('active'));
+        document.getElementById(tabName).classList.add('active');
+        event.target.classList.add('active');
+    }
+
+    function switchSubTab(event, tabName) {
+        event.preventDefault();
+        document.querySelectorAll('.sub-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.sub-tab-btn').forEach(el => el.classList.remove('active'));
+        document.getElementById(tabName).classList.add('active');
+        event.target.classList.add('active');
+    }
+
+    async function callClaude(prompt, maxTokens) {
+        const response = await fetch(API_ENDPOINT, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                model: 'claude-sonnet-4-20250514',
+                max_tokens: maxTokens,
+                messages: [{ role: 'user', content: prompt }]
+            })
+        });
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error?.message || `API Error: ${response.status}`);
         }
-        
-        function switchSubTab(event, tabName) {
-            event.preventDefault();
-            document.querySelectorAll('.sub-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.sub-tab-btn').forEach(el => el.classList.remove('active'));
-            document.getElementById(tabName).classList.add('active');
-            event.target.classList.add('active');
+        const data = await response.json();
+        return data.content[0].text;
+    }
+
+    async function analyzeUrls() {
+        const yourUrl = document.getElementById('yourUrl').value.trim();
+        const competitorUrls = document.getElementById('competitorUrls').value
+            .split('\n').map(u => u.trim()).filter(u => u);
+
+        if (!yourUrl || competitorUrls.length === 0) {
+            showError('compareResults', 'Please provide your URL and at least one competitor URL');
+            return;
         }
-        
-        async function getApiKey() {
-            if (!apiKey) {
-                const key = prompt('🔑 Paste your Anthropic API key:\n\nGet it from: console.anthropic.com\n\nYour key is stored only in this browser.');
-                if (!key) throw new Error('API key required to continue');
-                apiKey = key.trim();
-            }
-            return apiKey;
-        }
-        
-        async function callApi(prompt, maxTokens = 2000) {
-            const key = await getApiKey();
-            
-            const response = await fetch(API_ENDPOINT, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'anthropic-version': '2023-06-01',
-                    'x-api-key': key
-                },
-                body: JSON.stringify({
-                    model: 'claude-3-5-sonnet-20241022',
-                    max_tokens: maxTokens,
-                    messages: [
-                        { role: 'user', content: prompt }
-                    ]
-                })
-            });
-            
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                const errorMsg = errorData.error?.message || errorData.message || `HTTP ${response.status}`;
-                throw new Error(`API Error: ${errorMsg}`);
-            }
-            
-            const data = await response.json();
-            return data.content[0].text;
-        }
-        
-        async function analyzeUrls() {
-            const yourUrl = document.getElementById('yourUrl').value.trim();
-            const competitorUrls = document.getElementById('competitorUrls').value
-                .split('\n')
-                .map(url => url.trim())
-                .filter(url => url);
-            
-            if (!yourUrl || competitorUrls.length === 0) {
-                showError('compareResults', '❌ Please provide your URL and at least one competitor URL');
-                return;
-            }
-            
-            showLoading('compareResults');
-            
-            try {
-                const prompt = `Analyze these URLs and provide E-E-A-T scores and recommendations:
+
+        showLoading('compareResults');
+
+        const prompt = `Analyze these URLs and provide detailed E-E-A-T scores:
 
 Your URL: ${yourUrl}
-Competitor URLs: ${competitorUrls.join('\n')}
+Competitor URLs: ${competitorUrls.join(', ')}
 
 For each URL provide:
-1. Overall E-E-A-T Score (0-100)
-2. Key Strengths (3-5 bullets)
-3. Critical Gaps and Weaknesses (3-5 bullets)
-4. Specific Recommendations to Outrank (5+ actionable items)
+1. E-E-A-T Score (0-100) breakdown:
+   - Experience (0-25): First-hand knowledge, original data, examples
+   - Expertise (0-25): Author credentials, knowledge depth
+   - Authoritativeness (0-25): Citations, backlinks, reputation
+   - Trustworthiness (0-25): HTTPS, accuracy, freshness
 
-Be detailed and specific with recommendations.`;
-                
-                const result = await callApi(prompt, 2500);
-                displayResults('compareResults', result);
-            } catch (error) {
-                showError('compareResults', `❌ Error: ${error.message}\n\nTroubleshooting:\n• Check your API key is correct\n• Verify you have credits at console.anthropic.com\n• Try clearing browser cache (Ctrl+Shift+Delete)\n• Press F12 to see detailed errors`);
-            }
+2. Content Quality Metrics (1-10 scale each):
+   - Answer-first structure
+   - Fact density & citations
+   - Schema implementation
+   - Keyword optimization
+
+3. Key Strengths (2-3 bullets)
+4. Critical Gaps vs Your Content (2-3 bullets)
+5. Recommendations to Outrank (3-4 bullets)
+
+Be specific and actionable.`;
+
+        try {
+            const result = await callClaude(prompt, 2000);
+            displayResults('compareResults', result);
+        } catch (error) {
+            showError('compareResults', error.message);
         }
-        
-        async function rewriteContent() {
-            const keyword = document.getElementById('rewriteKeyword').value.trim();
-            const pageType = document.getElementById('pageType').value;
-            const content = document.getElementById('currentContent').value.trim();
-            
-            if (!keyword || !content) {
-                showError('rewriteResults', '❌ Please provide a keyword and content');
-                return;
-            }
-            
-            showLoading('rewriteResults');
-            
-            try {
-                const prompt = `Rewrite this ${pageType} for maximum E-E-A-T and AI visibility:
+    }
 
-Target Keyword: "${keyword}"
+    async function rewriteContent() {
+        const keyword = document.getElementById('rewriteKeyword').value.trim();
+        const pageType = document.getElementById('pageType').value;
+        const content = document.getElementById('currentContent').value.trim();
 
-Original Content:
+        if (!keyword || !content) {
+            showError('rewriteResults', 'Please provide a keyword and content');
+            return;
+        }
+
+        showLoading('rewriteResults');
+
+        const pageGuides = {
+            blog: 'Blog Post (1500-3000 words, answer-first, question headers, FAQ)',
+            service: 'Service Page (800-1500 words, process, outcomes, testimonials)',
+            homepage: 'Homepage (trust signals, About, value proposition)',
+            'case-study': 'Case Study (800-2000 words, challenge/solution/results)'
+        };
+
+        const prompt = `Rewrite this content for maximum E-E-A-T and AI visibility.
+
+Keyword: "${keyword}"
+Page Type: ${pageGuides[pageType]}
+
+Content:
+---
 ${content}
+---
 
-Rewritten content must:
-1. Include E-E-A-T signals (credentials, citations, expertise, trust)
-2. Start with direct answer (AI Overview optimization)
-3. Use question-based headers (H2/H3)
-4. Keep paragraphs short (2-3 lines)
-5. Include statistics with attribution
-6. Add FAQ section
-7. Naturally integrate keyword
-8. Include internal link suggestions [like this]
+Rewrite to include:
+1. E-E-A-T optimization (credentials, citations, expertise, trust)
+2. AI Overview structure (answer-first, short paragraphs, stats)
+3. Keyword integration (H1, first 100 words, related terms)
+4. Technical improvements (H1/H2/H3, links, schema)
 
 Output: Complete rewritten content ready to copy-paste.`;
-                
-                const result = await callApi(prompt, 3500);
-                displayResults('rewriteResults', result);
-            } catch (error) {
-                showError('rewriteResults', `❌ Error: ${error.message}`);
-            }
-        }
-        
-        async function generateContent() {
-            const keyword = document.getElementById('primaryKeyword').value.trim();
-            const secondary = document.getElementById('secondaryKeywords').value.trim();
-            const pageType = document.getElementById('genPageType').value;
-            const audience = document.getElementById('targetAudience').value.trim();
-            const brand = document.getElementById('brandInfo').value.trim();
-            
-            if (!keyword || !audience) {
-                showError('generateResults', '❌ Please provide a primary keyword and target audience');
-                return;
-            }
-            
-            showLoading('generateResults');
-            
-            try {
-                const prompt = `Create original, E-E-A-T optimized ${pageType} content:
 
-Primary Keyword: "${keyword}"
-Secondary Keywords: ${secondary || 'auto-generate LSI terms'}
-Target Audience: "${audience}"
-Brand/Company: ${brand}
+        try {
+            const result = await callClaude(prompt, 3000);
+            displayResults('rewriteResults', result);
+        } catch (error) {
+            showError('rewriteResults', error.message);
+        }
+    }
 
-Requirements:
-1. Experience Signals: Include original case studies, real examples, first-hand knowledge
-2. Expertise Signals: Author credentials, demonstrable knowledge, methodology
-3. Authoritativeness: Citations from credible sources, external references, consistent narrative
-4. Trustworthiness: HTTPS mention, current info, author bio, contact details
-5. AI Optimization: Answer-first structure, question-based headers, scannable content, FAQ
-6. Structure: Proper H1/H2/H3 hierarchy, bullet lists, internal link suggestions [like this]
+    async function generateContent() {
+        const primaryKeyword = document.getElementById('primaryKeyword').value.trim();
+        const secondaryKeywords = document.getElementById('secondaryKeywords').value.trim();
+        const pageType = document.getElementById('genPageType').value;
+        const audience = document.getElementById('targetAudience').value.trim();
+        const brandInfo = document.getElementById('brandInfo').value.trim();
 
-Output: Complete ready-to-publish content with meta title/description, FAQ section, and content score.`;
-                
-                const result = await callApi(prompt, 4000);
-                displayResults('generateResults', result);
-            } catch (error) {
-                showError('generateResults', `❌ Error: ${error.message}`);
-            }
+        if (!primaryKeyword || !audience) {
+            showError('generateResults', 'Please provide primary keyword and target audience');
+            return;
         }
-        
-        function displayResults(containerId, content) {
-            const textContent = content.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-            const resultsDiv = document.getElementById(containerId);
-            resultsDiv.innerHTML = `
-                <div style="margin-top: 24px;">
-                    <div class="success-message">✅ Done! Copy your content below.</div>
-                    <div class="content-box">
-                        <div class="content-preview">${textContent}</div>
-                    </div>
-                    <div class="button-group" style="margin-top: 16px;">
-                        <button class="btn btn-primary" onclick="copyResult('${containerId}')">📋 Copy to Clipboard</button>
-                        <button class="btn btn-secondary" onclick="downloadResult('${containerId}')">📥 Download as .txt</button>
-                    </div>
+
+        showLoading('generateResults');
+
+        const pageGuides = {
+            blog: 'Blog Post - 2000+ words',
+            service: 'Service Page - 1000+ words',
+            homepage: 'Homepage',
+            'case-study': 'Case Study - 800-2000 words'
+        };
+
+        const prompt = `Create original, E-E-A-T compliant content:
+
+Keyword: "${primaryKeyword}"
+Secondary: ${secondaryKeywords || 'auto-generate related terms'}
+Type: ${pageGuides[pageType]}
+Audience: ${audience}
+Brand: ${brandInfo}
+
+Include:
+1. Experience signals (case studies, real examples, original data)
+2. Expertise signals (author credentials, methodology)
+3. Authoritativeness (citations, external references)
+4. Trustworthiness (HTTPS mention, current info, author bio)
+5. AI Overview optimization (answer-first, FAQ, question headers)
+
+Output: Complete ready-to-publish content with:
+- Proper H1/H2/H3 structure
+- Meta title and description
+- FAQ section
+- Internal link suggestions
+- Content score (0-100)`;
+
+        try {
+            const result = await callClaude(prompt, 4000);
+            displayResults('generateResults', result);
+        } catch (error) {
+            showError('generateResults', error.message);
+        }
+    }
+
+    function displayResults(containerId, content) {
+        const textContent = content.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        document.getElementById(containerId).innerHTML = `
+            <div style="margin-top:24px;">
+                <div class="success-message">✅ Done! Ready to copy.</div>
+                <div class="content-box">
+                    <div class="content-preview">${textContent}</div>
                 </div>
-            `;
-        }
-        
-        function copyResult(containerId) {
-            const preview = document.querySelector(`#${containerId} .content-preview`);
-            const text = preview.textContent;
-            navigator.clipboard.writeText(text).then(() => {
-                alert('✅ Copied to clipboard!');
-            }).catch(() => {
-                alert('❌ Failed to copy. Try downloading instead.');
-            });
-        }
-        
-        function downloadResult(containerId) {
-            const preview = document.querySelector(`#${containerId} .content-preview`);
-            const text = preview.textContent;
-            const element = document.createElement('a');
-            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
-            element.setAttribute('download', 'content-' + new Date().getTime() + '.txt');
-            element.style.display = 'none';
-            document.body.appendChild(element);
-            element.click();
-            document.body.removeChild(element);
-        }
-        
-        function showLoading(containerId) {
-            document.getElementById(containerId).innerHTML = `
-                <div style="margin-top: 24px;">
-                    <div class="loading">
-                        <div class="spinner"></div>
-                        <span>Processing... This may take up to 30 seconds</span>
-                    </div>
+                <div class="button-group" style="margin-top:16px;">
+                    <button class="btn btn-primary" onclick="copyResult('${containerId}')">📋 Copy</button>
+                    <button class="btn btn-secondary" onclick="downloadResult('${containerId}')">📥 Download</button>
                 </div>
-            `;
-        }
-        
-        function showError(containerId, message) {
-            document.getElementById(containerId).innerHTML = `
-                <div class="error-message" style="margin-top: 24px;">
-                    ${message}
+            </div>`;
+    }
+
+    function copyResult(containerId) {
+        const text = document.querySelector(`#${containerId} .content-preview`).textContent;
+        navigator.clipboard.writeText(text).then(() => alert('✅ Copied!')).catch(() => alert('Failed to copy'));
+    }
+
+    function downloadResult(containerId) {
+        const text = document.querySelector(`#${containerId} .content-preview`).textContent;
+        const a = document.createElement('a');
+        a.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(text);
+        a.download = 'content.txt';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+
+    function showLoading(containerId) {
+        document.getElementById(containerId).innerHTML = `
+            <div style="margin-top:24px;">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <span>Processing... (may take 20-30 seconds)</span>
                 </div>
-            `;
-        }
-    </script>
+            </div>`;
+    }
+
+    function showError(containerId, message) {
+        document.getElementById(containerId).innerHTML = `
+            <div class="error-message" style="margin-top:24px;">❌ ${message}</div>`;
+    }
+</script>
 </body>
 </html>
