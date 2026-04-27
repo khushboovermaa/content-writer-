@@ -357,59 +357,67 @@
 
         showLoading('compareResults');
 
-        const prompt = `You are an expert SEO analyst. Analyze the following URLs using the RAG-based scoring framework below and return ONLY a JSON object — no markdown, no explanation, no code fences.
+        const analysisPrompt = `Analyze these URLs for SEO and E-E-A-T quality. Be specific and detailed.
 
-Your URL: ${yourUrl}
-Competitor URLs: ${competitorUrls.join(', ')}
+YOUR URL: ${yourUrl}
+COMPETITOR URLS: ${competitorUrls.join(', ')}
 
-Scoring Framework (total 100 points):
-- eeat: 25pts (experience 0-7, expertise 0-6, authoritativeness 0-6, trustworthiness 0-6)
-- contentQuality: 20pts
-- keywordIntent: 15pts
-- llmVisibility: 15pts
-- pageTypePractices: 15pts
-- technicalBaseline: 10pts
+For EACH URL, evaluate on these 6 dimensions and score each out of 10:
+1. E-E-A-T Signals (experience, expertise, authoritativeness, trustworthiness)
+2. Content Quality & Structure (depth, originality, formatting, answer-first)
+3. Keyword & Search Intent (keyword usage, intent alignment, related terms)
+4. LLM / AI Visibility (GEO readiness, schema, entity clarity, AI-bot access)
+5. Page-Type Best Practices (homepage/service/blog/case-study standards)
+6. Technical Baseline (HTTPS, speed, tags, mobile, schema markup)
 
-Return this exact JSON structure:
+Also identify 2-3 strengths, 2-3 critical gaps, and 3-4 recommendations for YOUR URL only.`;
+
+        try {
+            const analysisText = await callClaude(analysisPrompt, 2000);
+
+            const jsonPrompt = `You are a JSON formatter. Convert the SEO analysis below into this exact JSON structure. Return ONLY raw JSON — no markdown, no explanation, no code fences, nothing else.
+
+ANALYSIS TO CONVERT:
+${analysisText}
+
+REQUIRED JSON OUTPUT:
 {
   "yourUrl": {
-    "url": "...",
-    "totalScore": 0,
-    "tier": "Poor|Average|Good|Excellent|Failing",
-    "eeat": { "total": 0, "experience": 0, "expertise": 0, "authoritativeness": 0, "trustworthiness": 0 },
-    "contentQuality": 0,
-    "keywordIntent": 0,
-    "llmVisibility": 0,
-    "pageTypePractices": 0,
-    "technicalBaseline": 0,
+    "url": "paste the your-url here",
+    "scores": { "eeat": 0, "contentQuality": 0, "keywordIntent": 0, "llmVisibility": 0, "pageTypePractices": 0, "technicalBaseline": 0 },
+    "eeatBreakdown": { "experience": 0, "expertise": 0, "authoritativeness": 0, "trustworthiness": 0 },
     "strengths": ["...", "..."],
     "gaps": ["...", "..."],
     "recommendations": ["...", "...", "..."]
   },
   "competitors": [
     {
-      "url": "...",
-      "totalScore": 0,
-      "tier": "...",
-      "eeat": { "total": 0, "experience": 0, "expertise": 0, "authoritativeness": 0, "trustworthiness": 0 },
-      "contentQuality": 0,
-      "keywordIntent": 0,
-      "llmVisibility": 0,
-      "pageTypePractices": 0,
-      "technicalBaseline": 0,
-      "strengths": ["...", "..."],
-      "gaps": ["...", "..."]
+      "url": "paste competitor url here",
+      "scores": { "eeat": 0, "contentQuality": 0, "keywordIntent": 0, "llmVisibility": 0, "pageTypePractices": 0, "technicalBaseline": 0 },
+      "strengths": ["..."],
+      "gaps": ["..."]
     }
   ]
-}`;
+}
 
-        try {
-            const raw = await callClaude(prompt, 3000);
-            const cleaned = raw.replace(/```json|```/g, '').trim();
-            const data = JSON.parse(cleaned);
+All score values must be numbers between 0 and 10. All text values must be plain strings.`;
+
+            const rawJson = await callClaude(jsonPrompt, 2000);
+            const cleaned = rawJson.replace(/\`\`\`json|\`\`\`/gi, '').trim();
+            const jsonStart = cleaned.indexOf('{');
+            const jsonEnd = cleaned.lastIndexOf('}') + 1;
+            const data = JSON.parse(cleaned.slice(jsonStart, jsonEnd));
+
+            function avg(s) {
+                const vals = Object.values(s);
+                return Math.round(vals.reduce((a, b) => a + b, 0) / vals.length * 10) / 10;
+            }
+            data.yourUrl.overall = avg(data.yourUrl.scores);
+            if (data.competitors) data.competitors.forEach(c => { c.overall = avg(c.scores); });
+
             displayCompareResults(data);
-        } catch (error) {
-            showError('compareResults', 'Analysis failed: ' + error.message);
+        } catch (err) {
+            showError('compareResults', 'Analysis failed: ' + err.message + '. Please try again.');
         }
     }
 
@@ -509,121 +517,162 @@ Output: Complete ready-to-publish content with:
         }
     }
 
-    // ── TIER CONFIG ──────────────────────────────────────────────
-    function tierColor(score) {
-        if (score >= 90) return { bg: '#064e3b', border: '#34d399', text: '#6ee7b7', label: 'Excellent' };
-        if (score >= 75) return { bg: '#1e3a5f', border: '#60a5fa', text: '#93c5fd', label: 'Good' };
-        if (score >= 60) return { bg: '#3b2f00', border: '#f59e0b', text: '#fcd34d', label: 'Average' };
-        if (score >= 40) return { bg: '#4c1d1d', border: '#ef4444', text: '#fca5a5', label: 'Poor' };
-        return { bg: '#3b0a0a', border: '#dc2626', text: '#fca5a5', label: 'Failing' };
+    // ── VISUAL HELPERS ──────────────────────────────────────────
+    const DIMS = [
+        { key: 'eeat',               label: 'E-E-A-T Signals',            icon: '🏅', color: '#a78bfa' },
+        { key: 'contentQuality',     label: 'Content Quality',            icon: '📝', color: '#60a5fa' },
+        { key: 'keywordIntent',      label: 'Keyword & Intent',           icon: '🔍', color: '#34d399' },
+        { key: 'llmVisibility',      label: 'LLM / AI Visibility',        icon: '🤖', color: '#f59e0b' },
+        { key: 'pageTypePractices',  label: 'Page-Type Practices',        icon: '📋', color: '#fb7185' },
+        { key: 'technicalBaseline',  label: 'Technical Baseline',         icon: '⚙️', color: '#67e8f9' },
+    ];
+
+    function tierInfo(score) {
+        if (score >= 9)  return { label: 'Excellent', color: '#34d399', bg: 'rgba(52,211,153,0.12)', border: 'rgba(52,211,153,0.4)' };
+        if (score >= 7.5) return { label: 'Good',      color: '#60a5fa', bg: 'rgba(96,165,250,0.12)', border: 'rgba(96,165,250,0.4)' };
+        if (score >= 6)  return { label: 'Average',   color: '#f59e0b', bg: 'rgba(245,158,11,0.12)', border: 'rgba(245,158,11,0.4)' };
+        if (score >= 4)  return { label: 'Poor',      color: '#ef4444', bg: 'rgba(239,68,68,0.12)',  border: 'rgba(239,68,68,0.4)' };
+        return              { label: 'Failing',   color: '#dc2626', bg: 'rgba(220,38,38,0.12)',  border: 'rgba(220,38,38,0.4)' };
     }
 
-    function scoreBar(label, score, max, color) {
-        const pct = Math.round((score / max) * 100);
-        return `<div style="margin-bottom:14px;">
-            <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
-                <span style="font-size:13px;color:#cbd5e1;">${label}</span>
-                <span style="font-size:13px;font-weight:600;color:${color};">${score}/${max}</span>
-            </div>
-            <div style="background:rgba(255,255,255,0.08);border-radius:99px;height:7px;overflow:hidden;">
-                <div style="width:${pct}%;height:100%;background:${color};border-radius:99px;transition:width 0.6s ease;"></div>
-            </div>
+    function bigScoreCircle(score, size) {
+        const t = tierInfo(score);
+        const r = size === 'lg' ? 52 : 36;
+        const fs = size === 'lg' ? 28 : 18;
+        const lfs = size === 'lg' ? 11 : 10;
+        return `<div style="width:${r*2}px;height:${r*2}px;border-radius:50%;background:${t.bg};border:2px solid ${t.border};display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;">
+            <span style="font-size:${fs}px;font-weight:700;color:${t.color};line-height:1;">${score}</span>
+            <span style="font-size:${lfs}px;color:${t.color};opacity:0.8;">/10</span>
         </div>`;
     }
 
-    function eeatMini(e) {
-        const subs = [
-            { name: 'Experience', val: e.experience, max: 7 },
-            { name: 'Expertise', val: e.expertise, max: 6 },
-            { name: 'Authoritativeness', val: e.authoritativeness, max: 6 },
-            { name: 'Trustworthiness', val: e.trustworthiness, max: 6 }
+    function metricCard(dim, score) {
+        const pct = score * 10;
+        const t = tierInfo(score);
+        return `<div style="background:rgba(15,23,42,0.6);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:16px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <span style="font-size:16px;">${dim.icon}</span>
+                    <span style="font-size:13px;color:#cbd5e1;font-weight:500;">${dim.label}</span>
+                </div>
+                <span style="font-size:18px;font-weight:700;color:${dim.color};">${score}<span style="font-size:11px;color:#64748b;font-weight:400;">/10</span></span>
+            </div>
+            <div style="background:rgba(255,255,255,0.06);border-radius:99px;height:6px;overflow:hidden;">
+                <div style="width:${pct}%;height:100%;background:${dim.color};border-radius:99px;"></div>
+            </div>
+            <div style="margin-top:6px;font-size:11px;color:${t.color};font-weight:500;">${t.label}</div>
+        </div>`;
+    }
+
+    function eeatRadar(eb) {
+        const dims = [
+            { name: 'Experience', val: eb.experience },
+            { name: 'Expertise', val: eb.expertise },
+            { name: 'Authoritativeness', val: eb.authoritativeness },
+            { name: 'Trustworthiness', val: eb.trustworthiness },
         ];
-        return subs.map(s => `<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:12px;">
-            <span style="color:#94a3b8;">${s.name}</span>
-            <span style="color:#e2e8f0;font-weight:600;">${s.val}/${s.max}</span>
+        return dims.map(d => {
+            const pct = d.val * 10;
+            return `<div style="margin-bottom:10px;">
+                <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                    <span style="font-size:12px;color:#94a3b8;">${d.name}</span>
+                    <span style="font-size:12px;font-weight:600;color:#a78bfa;">${d.val}/10</span>
+                </div>
+                <div style="background:rgba(255,255,255,0.06);border-radius:99px;height:5px;overflow:hidden;">
+                    <div style="width:${pct}%;height:100%;background:#a78bfa;border-radius:99px;"></div>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    function pillList(items, color, icon) {
+        return items.map(t => `<div style="display:flex;gap:10px;padding:8px 12px;background:rgba(255,255,255,0.03);border-left:3px solid ${color};border-radius:0 8px 8px 0;margin-bottom:6px;">
+            <span style="font-size:13px;">${icon}</span>
+            <span style="font-size:13px;color:#cbd5e1;line-height:1.5;">${t}</span>
+        </div>`).join('');
+    }
+
+    function numberedList(items, color) {
+        return items.map((t, i) => `<div style="display:flex;gap:12px;padding:10px 12px;background:rgba(255,255,255,0.03);border-radius:8px;margin-bottom:6px;align-items:flex-start;">
+            <span style="width:22px;height:22px;min-width:22px;border-radius:50%;background:${color};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#0f172a;">${i+1}</span>
+            <span style="font-size:13px;color:#cbd5e1;line-height:1.5;margin-top:2px;">${t}</span>
         </div>`).join('');
     }
 
     function urlCard(d, isYours) {
-        const tc = tierColor(d.totalScore);
-        const accent = isYours ? '#60a5fa' : '#94a3b8';
-        return `<div style="background:rgba(15,23,42,0.7);border:1px solid ${isYours ? '#3b82f6' : 'rgba(148,163,184,0.2)'};border-radius:14px;padding:24px;margin-bottom:24px;">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
-                <div>
-                    <div style="font-size:11px;font-weight:600;color:${accent};text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">${isYours ? '📍 Your Page' : '🏁 Competitor'}</div>
-                    <div style="font-size:14px;color:#cbd5e1;word-break:break-all;">${d.url}</div>
-                </div>
-                <div style="background:${tc.bg};border:1px solid ${tc.border};border-radius:12px;padding:10px 18px;text-align:center;min-width:90px;">
-                    <div style="font-size:28px;font-weight:700;color:${tc.text};line-height:1;">${d.totalScore}</div>
-                    <div style="font-size:11px;color:${tc.text};margin-top:2px;">${tc.label}</div>
+        const t = tierInfo(d.overall);
+        const grid = DIMS.map(dim => metricCard(dim, d.scores[dim.key] || 0)).join('');
+        return `<div style="background:rgba(22,32,48,0.9);border:1px solid ${isYours ? 'rgba(96,165,250,0.4)' : 'rgba(148,163,184,0.12)'};border-radius:16px;padding:24px;margin-bottom:20px;">
+
+            <!-- Header -->
+            <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;flex-wrap:wrap;">
+                ${bigScoreCircle(d.overall, 'lg')}
+                <div style="flex:1;min-width:0;">
+                    <div style="font-size:11px;font-weight:600;color:${isYours ? '#60a5fa' : '#64748b'};text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">${isYours ? '📍 Your Page' : '🏁 Competitor'}</div>
+                    <div style="font-size:14px;color:#e2e8f0;font-weight:500;word-break:break-all;">${d.url}</div>
+                    <div style="font-size:12px;color:${t.color};margin-top:4px;font-weight:600;">${t.label} · Overall ${d.overall}/10</div>
                 </div>
             </div>
 
-            <div style="margin-bottom:20px;">
-                ${scoreBar('E-E-A-T Signals', d.eeat.total, 25, '#a78bfa')}
-                ${scoreBar('Content Quality & Structure', d.contentQuality, 20, '#60a5fa')}
-                ${scoreBar('Keyword & Search Intent', d.keywordIntent, 15, '#34d399')}
-                ${scoreBar('LLM / AI Visibility', d.llmVisibility, 15, '#f59e0b')}
-                ${scoreBar('Page-Type Best Practices', d.pageTypePractices, 15, '#fb7185')}
-                ${scoreBar('Technical Baseline', d.technicalBaseline, 10, '#67e8f9')}
+            <!-- 6 Metric Cards Grid -->
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:20px;">
+                ${grid}
             </div>
 
+            ${d.eeatBreakdown ? `<!-- E-E-A-T Breakdown -->
             <details style="margin-bottom:16px;">
-                <summary style="cursor:pointer;font-size:13px;font-weight:600;color:#a78bfa;margin-bottom:10px;">🔍 E-E-A-T Breakdown</summary>
-                <div style="background:rgba(15,23,42,0.5);border-radius:8px;padding:12px;margin-top:8px;">
-                    ${eeatMini(d.eeat)}
+                <summary style="cursor:pointer;font-size:13px;font-weight:600;color:#a78bfa;padding:10px 0;list-style:none;display:flex;align-items:center;gap:6px;">
+                    <span>▶</span> 🏅 E-E-A-T Breakdown
+                </summary>
+                <div style="background:rgba(15,23,42,0.5);border-radius:10px;padding:16px;margin-top:10px;">
+                    ${eeatRadar(d.eeatBreakdown)}
                 </div>
-            </details>
+            </details>` : ''}
 
-            ${d.strengths && d.strengths.length ? `<div style="margin-bottom:14px;">
-                <div style="font-size:13px;font-weight:600;color:#34d399;margin-bottom:8px;">✅ Strengths</div>
-                ${d.strengths.map(s => `<div style="font-size:13px;color:#94a3b8;padding:4px 0 4px 14px;border-left:2px solid #34d399;margin-bottom:6px;">${s}</div>`).join('')}
-            </div>` : ''}
+            <!-- Strengths & Gaps -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:${isYours ? '20px' : '0'};">
+                ${d.strengths && d.strengths.length ? `<div>
+                    <div style="font-size:12px;font-weight:600;color:#34d399;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;">✅ Strengths</div>
+                    ${pillList(d.strengths, '#34d399', '+')}
+                </div>` : '<div></div>'}
+                ${d.gaps && d.gaps.length ? `<div>
+                    <div style="font-size:12px;font-weight:600;color:#f87171;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;">⚠️ Critical Gaps</div>
+                    ${pillList(d.gaps, '#ef4444', '−')}
+                </div>` : '<div></div>'}
+            </div>
 
-            ${d.gaps && d.gaps.length ? `<div style="margin-bottom:14px;">
-                <div style="font-size:13px;font-weight:600;color:#f87171;margin-bottom:8px;">⚠️ Critical Gaps</div>
-                ${d.gaps.map(g => `<div style="font-size:13px;color:#94a3b8;padding:4px 0 4px 14px;border-left:2px solid #ef4444;margin-bottom:6px;">${g}</div>`).join('')}
-            </div>` : ''}
-
-            ${isYours && d.recommendations && d.recommendations.length ? `<div>
-                <div style="font-size:13px;font-weight:600;color:#60a5fa;margin-bottom:8px;">🚀 Recommendations to Outrank</div>
-                ${d.recommendations.map((r, i) => `<div style="font-size:13px;color:#94a3b8;padding:6px 0 6px 14px;border-left:2px solid #60a5fa;margin-bottom:6px;"><span style="color:#60a5fa;font-weight:600;">${i+1}.</span> ${r}</div>`).join('')}
+            ${isYours && d.recommendations && d.recommendations.length ? `<!-- Recommendations -->
+            <div style="border-top:1px solid rgba(255,255,255,0.07);padding-top:16px;">
+                <div style="font-size:12px;font-weight:600;color:#60a5fa;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px;">🚀 Recommendations to Outrank</div>
+                ${numberedList(d.recommendations, '#60a5fa')}
             </div>` : ''}
         </div>`;
     }
 
     function displayCompareResults(data) {
         const container = document.getElementById('compareResults');
-        let html = '<div style="margin-top:24px;">';
+        const all = [data.yourUrl, ...(data.competitors || [])];
 
-        // Score comparison bar if competitors exist
-        if (data.competitors && data.competitors.length) {
-            html += `<div style="background:rgba(30,41,59,0.6);border:1px solid rgba(148,163,184,0.15);border-radius:12px;padding:20px;margin-bottom:24px;">
-                <div style="font-size:13px;font-weight:600;color:#f1f5f9;margin-bottom:14px;">📊 Score Comparison</div>`;
+        // Comparison overview bar
+        let compHtml = `<div style="background:rgba(15,23,42,0.7);border:1px solid rgba(148,163,184,0.12);border-radius:14px;padding:20px;margin-bottom:24px;">
+            <div style="font-size:12px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;">📊 Overall Score Comparison</div>
+            <div style="display:flex;gap:12px;align-items:flex-end;height:100px;margin-bottom:8px;">`;
 
-            const all = [data.yourUrl, ...data.competitors];
-            const maxScore = Math.max(...all.map(d => d.totalScore));
-            all.forEach(d => {
-                const isYours = d.url === data.yourUrl.url;
-                const tc = tierColor(d.totalScore);
-                const pct = Math.round((d.totalScore / 100) * 100);
-                html += `<div style="margin-bottom:10px;">
-                    <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
-                        <span style="font-size:12px;color:${isYours ? '#60a5fa' : '#94a3b8'};">${isYours ? '📍 ' : '🏁 '}${d.url.replace(/https?:\/\//, '').substring(0, 50)}</span>
-                        <span style="font-size:12px;font-weight:700;color:${tc.text};">${d.totalScore}/100</span>
-                    </div>
-                    <div style="background:rgba(255,255,255,0.08);border-radius:99px;height:8px;">
-                        <div style="width:${pct}%;height:100%;background:${isYours ? '#3b82f6' : 'rgba(148,163,184,0.4)'};border-radius:99px;"></div>
-                    </div>
-                </div>`;
-            });
-            html += '</div>';
-        }
+        const maxScore = Math.max(...all.map(d => d.overall), 1);
+        all.forEach(d => {
+            const isYours = d.url === data.yourUrl.url;
+            const t = tierInfo(d.overall);
+            const barH = Math.round((d.overall / 10) * 80);
+            const shortUrl = d.url.replace(/https?:\/\//, '').substring(0, 25) + (d.url.length > 33 ? '…' : '');
+            compHtml += `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
+                <span style="font-size:12px;font-weight:700;color:${t.color};">${d.overall}</span>
+                <div style="width:100%;height:${barH}px;background:${isYours ? 'rgba(96,165,250,0.5)' : 'rgba(148,163,184,0.2)'};border-radius:6px 6px 0 0;border-top:2px solid ${isYours ? '#60a5fa' : 'rgba(148,163,184,0.3)'}; min-height:4px;"></div>
+                <span style="font-size:10px;color:${isYours ? '#60a5fa' : '#64748b'};text-align:center;word-break:break-all;">${shortUrl}</span>
+            </div>`;
+        });
+        compHtml += `</div></div>`;
 
-        html += urlCard(data.yourUrl, true);
-        if (data.competitors) data.competitors.forEach(c => { html += urlCard(c, false); });
-        html += '</div>';
-        container.innerHTML = html;
+        container.innerHTML = `<div style="margin-top:24px;">${compHtml}${all.map((d, i) => urlCard(d, i === 0)).join('')}</div>`;
     }
 
     function displayResults(containerId, content) {
