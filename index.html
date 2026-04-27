@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Content Score Engine - All-in-One Tool</title>
+    <title>AI Content Score Engine</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html, body { height: 100%; width: 100%; }
@@ -89,7 +89,6 @@
         .guide-content ul, .guide-content ol { margin-left: 20px; margin-bottom: 12px; }
         .guide-content li { margin-bottom: 8px; }
         .guide-content code { background: rgba(15,23,42,0.6); padding: 2px 6px; border-radius: 4px; color: #a78bfa; font-family: 'Monaco',monospace; font-size: 12px; }
-        .guide-content pre { background: rgba(15,23,42,0.8); padding: 16px; border-radius: 8px; overflow-x: auto; margin: 16px 0; color: #a78bfa; font-family: 'Monaco',monospace; font-size: 12px; }
         .checklist { list-style: none; margin-left: 0; }
         .checklist li { padding: 8px 0; padding-left: 24px; position: relative; }
         .checklist li:before { content: "✓"; position: absolute; left: 0; color: #34d399; font-weight: bold; }
@@ -97,6 +96,105 @@
         .warning-box strong { color: #fca5a5; }
         .success-box { background: rgba(52,211,153,0.1); border-left: 3px solid #34d399; padding: 16px; border-radius: 6px; margin: 16px 0; }
         .success-box strong { color: #86efac; }
+
+        /* ── Section Rewrite Cards ── */
+        .rewrite-section-card {
+            border-radius: 12px;
+            margin-bottom: 16px;
+            overflow: hidden;
+            border: 1px solid rgba(148,163,184,0.15);
+        }
+        .rewrite-section-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 16px;
+            background: rgba(15,23,42,0.7);
+            cursor: pointer;
+            user-select: none;
+        }
+        .rewrite-section-header:hover { background: rgba(15,23,42,0.9); }
+        .rewrite-section-body { padding: 16px; background: rgba(10,18,35,0.5); display: none; }
+        .rewrite-section-body.open { display: block; }
+        .before-after-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        @media(max-width:700px){ .before-after-grid { grid-template-columns: 1fr; } }
+        .before-box, .after-box {
+            border-radius: 8px; padding: 14px; font-size: 13px; line-height: 1.7;
+        }
+        .before-box { background: rgba(239,68,68,0.07); border: 1px solid rgba(239,68,68,0.25); color: #fca5a5; }
+        .after-box  { background: rgba(52,211,153,0.07); border: 1px solid rgba(52,211,153,0.25); color: #86efac; }
+        .before-box strong, .after-box strong { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; opacity: 0.7; }
+        .why-box { margin-top: 12px; padding: 10px 14px; background: rgba(96,165,250,0.07); border-left: 3px solid #60a5fa; border-radius: 0 8px 8px 0; font-size: 12px; color: #93c5fd; line-height: 1.6; }
+        .priority-badge {
+            font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 99px;
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .priority-high   { background: rgba(239,68,68,0.2);  color: #fca5a5; }
+        .priority-medium { background: rgba(245,158,11,0.2); color: #fcd34d; }
+        .priority-low    { background: rgba(52,211,153,0.15);color: #6ee7b7; }
+        .section-impact-label { font-size: 12px; color: #94a3b8; margin-left: auto; }
+        .copy-snippet-btn {
+            font-size: 11px; padding: 4px 10px; border-radius: 6px;
+            background: rgba(52,211,153,0.15); border: 1px solid rgba(52,211,153,0.3);
+            color: #6ee7b7; cursor: pointer; margin-top: 8px; display: inline-block;
+        }
+        .copy-snippet-btn:hover { background: rgba(52,211,153,0.25); }
+
+        /* ── URL History Dropdown ── */
+        .url-input-wrap { position: relative; }
+        .url-history-btn {
+            position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+            background: rgba(96,165,250,0.15); border: 1px solid rgba(96,165,250,0.3);
+            color: #93c5fd; border-radius: 6px; padding: 3px 10px; font-size: 12px;
+            cursor: pointer; white-space: nowrap; transition: all 0.2s;
+        }
+        .url-history-btn:hover { background: rgba(96,165,250,0.28); }
+        .url-history-dropdown {
+            position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 999;
+            background: #1a2640; border: 1px solid rgba(96,165,250,0.35); border-radius: 10px;
+            overflow: hidden; box-shadow: 0 8px 28px rgba(0,0,0,0.45);
+            display: none; max-height: 240px; overflow-y: auto;
+        }
+        .url-history-dropdown.open { display: block; animation: fadeIn 0.15s ease; }
+        .url-history-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 8px 14px; background: rgba(96,165,250,0.08);
+            border-bottom: 1px solid rgba(96,165,250,0.15);
+            font-size: 11px; font-weight: 600; color: #93c5fd; text-transform: uppercase; letter-spacing: 0.6px;
+        }
+        .url-history-clear-all {
+            font-size: 11px; color: #f87171; background: none; border: none;
+            cursor: pointer; padding: 0;
+        }
+        .url-history-clear-all:hover { text-decoration: underline; }
+        .url-history-item {
+            display: flex; align-items: center; gap: 0; padding: 0;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+        .url-history-item:last-child { border-bottom: none; }
+        .url-history-fill {
+            flex: 1; padding: 10px 14px; font-size: 13px; color: #cbd5e1;
+            cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            background: none; border: none; text-align: left;
+        }
+        .url-history-fill:hover { background: rgba(96,165,250,0.1); color: #fff; }
+        .url-history-del {
+            padding: 10px 12px; font-size: 14px; color: #64748b;
+            cursor: pointer; background: none; border: none; border-left: 1px solid rgba(255,255,255,0.05);
+            flex-shrink: 0;
+        }
+        .url-history-del:hover { color: #f87171; background: rgba(239,68,68,0.08); }
+        .url-history-empty { padding: 12px 14px; font-size: 13px; color: #475569; font-style: italic; }
+
+        /* competitor textarea history sits below textarea */
+        .comp-history-wrap { position: relative; }
+        .comp-history-dropdown {
+            position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 999;
+            background: #1a2640; border: 1px solid rgba(96,165,250,0.35); border-radius: 10px;
+            overflow: hidden; box-shadow: 0 8px 28px rgba(0,0,0,0.45);
+            display: none; max-height: 240px; overflow-y: auto;
+        }
+        .comp-history-dropdown.open { display: block; animation: fadeIn 0.15s ease; }
     </style>
 </head>
 <body>
@@ -124,14 +222,36 @@
         <div id="compare" class="sub-content active">
             <div class="tool-section">
                 <h2 class="section-title">Compare Your Content vs Competitors</h2>
-                <p class="info-text">Analyze your URL against competitors. Get E-E-A-T scores, gaps, and recommendations.</p>
+                <p class="info-text">Analyze your URL against competitors. Get E-E-A-T scores, specific sections to rewrite, and before/after suggestions.</p>
                 <div class="form-group">
                     <label class="form-label">Your URL</label>
-                    <input type="url" class="form-input" id="yourUrl" placeholder="https://yoursite.com/page">
+                    <div class="url-input-wrap">
+                        <input type="url" class="form-input" id="yourUrl" placeholder="https://yoursite.com/page" style="padding-right:110px;" autocomplete="off">
+                        <button class="url-history-btn" type="button" onclick="toggleDropdown('yourUrlDrop')">🕐 History ▾</button>
+                        <div class="url-history-dropdown" id="yourUrlDrop">
+                            <div class="url-history-header">
+                                Recent URLs
+                                <button class="url-history-clear-all" onclick="clearHistory('yourUrl')">Clear all</button>
+                            </div>
+                            <div id="yourUrlDropList"></div>
+                        </div>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Competitor URLs (one per line)</label>
-                    <textarea class="form-textarea" id="competitorUrls" placeholder="https://competitor1.com/page&#10;https://competitor2.com/page"></textarea>
+                    <div class="comp-history-wrap">
+                        <div style="display:flex;align-items:center;justify-content:flex-end;margin-bottom:6px;">
+                            <button class="url-history-btn" type="button" style="position:static;transform:none;" onclick="toggleDropdown('compUrlDrop')">🕐 History ▾</button>
+                        </div>
+                        <textarea class="form-textarea" id="competitorUrls" placeholder="https://competitor1.com/page&#10;https://competitor2.com/page"></textarea>
+                        <div class="comp-history-dropdown" id="compUrlDrop">
+                            <div class="url-history-header">
+                                Recent Competitor Sets
+                                <button class="url-history-clear-all" onclick="clearHistory('compUrls')">Clear all</button>
+                            </div>
+                            <div id="compUrlDropList"></div>
+                        </div>
+                    </div>
                 </div>
                 <div class="button-group">
                     <button class="btn btn-primary" onclick="analyzeUrls()"><span>⚡</span> Analyze</button>
@@ -223,12 +343,11 @@
 
             <h3>📊 Feature 1: Compare URLs</h3>
             <p><strong>Purpose:</strong> Analyze your content vs competitors to find ranking opportunities.</p>
-            <p><strong>How to use:</strong></p>
             <ol>
                 <li>Enter your URL</li>
                 <li>Enter 1-3 competitor URLs (one per line)</li>
                 <li>Click "Analyze"</li>
-                <li>Get E-E-A-T scores, gaps, and recommendations</li>
+                <li>Get E-E-A-T scores, <strong>specific sections to rewrite</strong>, before/after examples, and recommendations</li>
             </ol>
 
             <h3>✨ Feature 2: Rewrite Content</h3>
@@ -243,8 +362,7 @@
             <h3>🚀 Feature 3: Generate Content</h3>
             <p><strong>Purpose:</strong> Create new, high-quality content from scratch.</p>
             <ol>
-                <li>Enter primary keyword</li>
-                <li>Add secondary keywords (optional)</li>
+                <li>Enter primary keyword, secondary keywords</li>
                 <li>Select page type and target audience</li>
                 <li>Describe your brand</li>
                 <li>Click "Generate"</li>
@@ -263,15 +381,13 @@
                 <li>Company About page</li>
             </ul>
 
-            <h3>💡 Pro Tips</h3>
             <div class="success-box">
-                <strong>Start with Compare URLs</strong> — Understand your competition first<br><br>
-                <strong>Be specific</strong> — More detail in inputs = better outputs<br><br>
-                <strong>Customize output</strong> — Add your real data and brand voice<br><br>
-                <strong>Include case studies</strong> — Real examples boost E-E-A-T
+                <strong>Pro Tips</strong><br><br>
+                Start with <strong>Compare URLs</strong> — understand your competition first.<br><br>
+                Expand each <strong>"Section to Rewrite"</strong> card to see exactly what to change and why.<br><br>
+                Use the <strong>Copy Suggestion</strong> button to grab the rewritten text instantly.
             </div>
 
-            <h3>🐛 Troubleshooting</h3>
             <div class="warning-box">
                 <strong>If you get an error:</strong> Check your internet connection and try again. The AI sometimes takes longer on complex prompts — wait a moment and retry.
             </div>
@@ -292,6 +408,11 @@
         savedKey = key.trim();
         sessionStorage.setItem('anthropic_key', savedKey);
         return savedKey;
+    }
+
+    function changeKey() {
+        const key = prompt('Enter your Anthropic API key (console.anthropic.com):');
+        if (key) { savedKey = key.trim(); sessionStorage.setItem('anthropic_key', savedKey); alert('API key saved for this session.'); }
     }
 
     function switchMainTab(event, tabName) {
@@ -340,11 +461,7 @@
         return data.content[0].text;
     }
 
-    function changeKey() {
-        const key = prompt('Enter your Anthropic API key (console.anthropic.com):');
-        if (key) { savedKey = key.trim(); sessionStorage.setItem('anthropic_key', savedKey); alert('API key saved for this session.'); }
-    }
-
+    // ── ANALYZE URLS ─────────────────────────────────────────────────────────────
     async function analyzeUrls() {
         const yourUrl = document.getElementById('yourUrl').value.trim();
         const competitorUrls = document.getElementById('competitorUrls').value
@@ -355,14 +472,15 @@
             return;
         }
 
-        showLoading('compareResults');
+        showLoading('compareResults', 'Analyzing pages… this takes about 30 seconds');
 
-        const analysisPrompt = `Analyze these URLs for SEO and E-E-A-T quality. Be specific and detailed.
+        // Step 1 – narrative analysis
+        const analysisPrompt = `You are an expert SEO auditor. Analyze these URLs for E-E-A-T quality, content structure, and ranking factors.
 
 YOUR URL: ${yourUrl}
 COMPETITOR URLS: ${competitorUrls.join(', ')}
 
-For EACH URL, evaluate on these 6 dimensions and score each out of 10:
+For EACH URL, score these 6 dimensions out of 10:
 1. E-E-A-T Signals (experience, expertise, authoritativeness, trustworthiness)
 2. Content Quality & Structure (depth, originality, formatting, answer-first)
 3. Keyword & Search Intent (keyword usage, intent alignment, related terms)
@@ -370,40 +488,61 @@ For EACH URL, evaluate on these 6 dimensions and score each out of 10:
 5. Page-Type Best Practices (homepage/service/blog/case-study standards)
 6. Technical Baseline (HTTPS, speed, tags, mobile, schema markup)
 
-Also identify 2-3 strengths, 2-3 critical gaps, and 3-4 recommendations for YOUR URL only.`;
+For YOUR URL only, also identify:
+- 2–3 STRENGTHS
+- 2–3 CRITICAL GAPS
+- 3–4 RECOMMENDATIONS to outrank competitors
+- 4–6 SPECIFIC CONTENT SECTIONS that need rewriting, each with:
+  * The section name (e.g. "Hero Headline", "About Us", "FAQ", "Meta Description", "Introduction paragraph", "CTA block")
+  * Priority: HIGH / MEDIUM / LOW
+  * Why it is weak (1–2 sentences referencing what competitors do better)
+  * The CURRENT weak text or what it likely says (even if approximate)
+  * A REWRITTEN improved version (2–5 sentences) that adds E-E-A-T, keyword usage, and AI visibility
+  * Impact if fixed (1 sentence)`;
 
         try {
-            const analysisText = await callClaude(analysisPrompt, 2000);
+            const analysisText = await callClaude(analysisPrompt, 2500);
 
-            const jsonPrompt = `You are a JSON formatter. Convert the SEO analysis below into this exact JSON structure. Return ONLY raw JSON — no markdown, no explanation, no code fences, nothing else.
+            // Step 2 – convert to JSON
+            const jsonPrompt = `You are a JSON formatter. Convert the SEO analysis below into the exact JSON structure shown. Return ONLY raw JSON — no markdown, no code fences, no explanation, nothing else.
 
-ANALYSIS TO CONVERT:
+ANALYSIS:
 ${analysisText}
 
-REQUIRED JSON OUTPUT:
+REQUIRED JSON:
 {
   "yourUrl": {
-    "url": "paste the your-url here",
+    "url": "string",
     "scores": { "eeat": 0, "contentQuality": 0, "keywordIntent": 0, "llmVisibility": 0, "pageTypePractices": 0, "technicalBaseline": 0 },
     "eeatBreakdown": { "experience": 0, "expertise": 0, "authoritativeness": 0, "trustworthiness": 0 },
-    "strengths": ["...", "..."],
-    "gaps": ["...", "..."],
-    "recommendations": ["...", "...", "..."]
+    "strengths": ["string"],
+    "gaps": ["string"],
+    "recommendations": ["string"],
+    "sectionsToRewrite": [
+      {
+        "sectionName": "string",
+        "priority": "HIGH|MEDIUM|LOW",
+        "whyWeak": "string",
+        "currentText": "string",
+        "suggestedRewrite": "string",
+        "impact": "string"
+      }
+    ]
   },
   "competitors": [
     {
-      "url": "paste competitor url here",
+      "url": "string",
       "scores": { "eeat": 0, "contentQuality": 0, "keywordIntent": 0, "llmVisibility": 0, "pageTypePractices": 0, "technicalBaseline": 0 },
-      "strengths": ["..."],
-      "gaps": ["..."]
+      "strengths": ["string"],
+      "gaps": ["string"]
     }
   ]
 }
 
-All score values must be numbers between 0 and 10. All text values must be plain strings.`;
+All score values must be numbers 0–10. All text must be plain strings (no markdown).`;
 
-            const rawJson = await callClaude(jsonPrompt, 2000);
-            const cleaned = rawJson.replace(/\`\`\`json|\`\`\`/gi, '').trim();
+            const rawJson = await callClaude(jsonPrompt, 2500);
+            const cleaned = rawJson.replace(/```json|```/gi, '').trim();
             const jsonStart = cleaned.indexOf('{');
             const jsonEnd = cleaned.lastIndexOf('}') + 1;
             const data = JSON.parse(cleaned.slice(jsonStart, jsonEnd));
@@ -421,6 +560,7 @@ All score values must be numbers between 0 and 10. All text values must be plain
         }
     }
 
+    // ── REWRITE ───────────────────────────────────────────────────────────────────
     async function rewriteContent() {
         const keyword = document.getElementById('rewriteKeyword').value.trim();
         const pageType = document.getElementById('pageType').value;
@@ -431,7 +571,7 @@ All score values must be numbers between 0 and 10. All text values must be plain
             return;
         }
 
-        showLoading('rewriteResults');
+        showLoading('rewriteResults', 'Rewriting content…');
 
         const pageGuides = {
             blog: 'Blog Post (1500-3000 words, answer-first, question headers, FAQ)',
@@ -440,7 +580,7 @@ All score values must be numbers between 0 and 10. All text values must be plain
             'case-study': 'Case Study (800-2000 words, challenge/solution/results)'
         };
 
-        const prompt = `You are an expert SEO content strategist using the RAG E-E-A-T framework. Rewrite the content below for maximum E-E-A-T signals and AI Overview visibility.
+        const prompt = `You are an expert SEO content strategist. Rewrite the content below for maximum E-E-A-T signals and AI Overview visibility.
 
 Keyword: "${keyword}"
 Page Type: ${pageGuides[pageType]}
@@ -466,6 +606,7 @@ Output: Complete rewritten content ready to copy-paste.`;
         }
     }
 
+    // ── GENERATE ──────────────────────────────────────────────────────────────────
     async function generateContent() {
         const primaryKeyword = document.getElementById('primaryKeyword').value.trim();
         const secondaryKeywords = document.getElementById('secondaryKeywords').value.trim();
@@ -478,7 +619,7 @@ Output: Complete rewritten content ready to copy-paste.`;
             return;
         }
 
-        showLoading('generateResults');
+        showLoading('generateResults', 'Generating content…');
 
         const pageGuides = {
             blog: 'Blog Post - 2000+ words',
@@ -517,27 +658,27 @@ Output: Complete ready-to-publish content with:
         }
     }
 
-    // ── VISUAL HELPERS ──────────────────────────────────────────
+    // ── VISUAL HELPERS ────────────────────────────────────────────────────────────
     const DIMS = [
-        { key: 'eeat',               label: 'E-E-A-T Signals',            icon: '🏅', color: '#a78bfa' },
-        { key: 'contentQuality',     label: 'Content Quality',            icon: '📝', color: '#60a5fa' },
-        { key: 'keywordIntent',      label: 'Keyword & Intent',           icon: '🔍', color: '#34d399' },
-        { key: 'llmVisibility',      label: 'LLM / AI Visibility',        icon: '🤖', color: '#f59e0b' },
-        { key: 'pageTypePractices',  label: 'Page-Type Practices',        icon: '📋', color: '#fb7185' },
-        { key: 'technicalBaseline',  label: 'Technical Baseline',         icon: '⚙️', color: '#67e8f9' },
+        { key: 'eeat',               label: 'E-E-A-T Signals',   icon: '🏅', color: '#a78bfa' },
+        { key: 'contentQuality',     label: 'Content Quality',   icon: '📝', color: '#60a5fa' },
+        { key: 'keywordIntent',      label: 'Keyword & Intent',  icon: '🔍', color: '#34d399' },
+        { key: 'llmVisibility',      label: 'LLM / AI Visibility', icon: '🤖', color: '#f59e0b' },
+        { key: 'pageTypePractices',  label: 'Page-Type Practices', icon: '📋', color: '#fb7185' },
+        { key: 'technicalBaseline',  label: 'Technical Baseline', icon: '⚙️', color: '#67e8f9' },
     ];
 
     function tierInfo(score) {
-        if (score >= 9)  return { label: 'Excellent', color: '#34d399', bg: 'rgba(52,211,153,0.12)', border: 'rgba(52,211,153,0.4)' };
-        if (score >= 7.5) return { label: 'Good',      color: '#60a5fa', bg: 'rgba(96,165,250,0.12)', border: 'rgba(96,165,250,0.4)' };
-        if (score >= 6)  return { label: 'Average',   color: '#f59e0b', bg: 'rgba(245,158,11,0.12)', border: 'rgba(245,158,11,0.4)' };
-        if (score >= 4)  return { label: 'Poor',      color: '#ef4444', bg: 'rgba(239,68,68,0.12)',  border: 'rgba(239,68,68,0.4)' };
-        return              { label: 'Failing',   color: '#dc2626', bg: 'rgba(220,38,38,0.12)',  border: 'rgba(220,38,38,0.4)' };
+        if (score >= 9)   return { label: 'Excellent', color: '#34d399', bg: 'rgba(52,211,153,0.12)',  border: 'rgba(52,211,153,0.4)' };
+        if (score >= 7.5) return { label: 'Good',      color: '#60a5fa', bg: 'rgba(96,165,250,0.12)',  border: 'rgba(96,165,250,0.4)' };
+        if (score >= 6)   return { label: 'Average',   color: '#f59e0b', bg: 'rgba(245,158,11,0.12)',  border: 'rgba(245,158,11,0.4)' };
+        if (score >= 4)   return { label: 'Poor',      color: '#ef4444', bg: 'rgba(239,68,68,0.12)',   border: 'rgba(239,68,68,0.4)' };
+        return                   { label: 'Failing',   color: '#dc2626', bg: 'rgba(220,38,38,0.12)',   border: 'rgba(220,38,38,0.4)' };
     }
 
     function bigScoreCircle(score, size) {
         const t = tierInfo(score);
-        const r = size === 'lg' ? 52 : 36;
+        const r  = size === 'lg' ? 52 : 36;
         const fs = size === 'lg' ? 28 : 18;
         const lfs = size === 'lg' ? 11 : 10;
         return `<div style="width:${r*2}px;height:${r*2}px;border-radius:50%;background:${t.bg};border:2px solid ${t.border};display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;">
@@ -565,21 +706,16 @@ Output: Complete ready-to-publish content with:
     }
 
     function eeatRadar(eb) {
-        const dims = [
-            { name: 'Experience', val: eb.experience },
-            { name: 'Expertise', val: eb.expertise },
-            { name: 'Authoritativeness', val: eb.authoritativeness },
-            { name: 'Trustworthiness', val: eb.trustworthiness },
-        ];
-        return dims.map(d => {
-            const pct = d.val * 10;
+        return ['experience','expertise','authoritativeness','trustworthiness'].map(k => {
+            const label = k.charAt(0).toUpperCase() + k.slice(1);
+            const val = eb[k] || 0;
             return `<div style="margin-bottom:10px;">
                 <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
-                    <span style="font-size:12px;color:#94a3b8;">${d.name}</span>
-                    <span style="font-size:12px;font-weight:600;color:#a78bfa;">${d.val}/10</span>
+                    <span style="font-size:12px;color:#94a3b8;">${label}</span>
+                    <span style="font-size:12px;font-weight:600;color:#a78bfa;">${val}/10</span>
                 </div>
                 <div style="background:rgba(255,255,255,0.06);border-radius:99px;height:5px;overflow:hidden;">
-                    <div style="width:${pct}%;height:100%;background:#a78bfa;border-radius:99px;"></div>
+                    <div style="width:${val*10}%;height:100%;background:#a78bfa;border-radius:99px;"></div>
                 </div>
             </div>`;
         }).join('');
@@ -599,6 +735,74 @@ Output: Complete ready-to-publish content with:
         </div>`).join('');
     }
 
+    // ── SECTIONS TO REWRITE ───────────────────────────────────────────────────────
+    let sectionCounter = 0;
+
+    function priorityBadge(p) {
+        const cls = p === 'HIGH' ? 'priority-high' : p === 'MEDIUM' ? 'priority-medium' : 'priority-low';
+        const icon = p === 'HIGH' ? '🔴' : p === 'MEDIUM' ? '🟡' : '🟢';
+        return `<span class="priority-badge ${cls}">${icon} ${p}</span>`;
+    }
+
+    function sectionRewritePanel(sections) {
+        if (!sections || sections.length === 0) return '';
+
+        const cards = sections.map(s => {
+            const id = 'sec_' + (sectionCounter++);
+            const safeRewrite = (s.suggestedRewrite || '').replace(/'/g, "\\'").replace(/\n/g, '\\n');
+            return `<div class="rewrite-section-card">
+                <div class="rewrite-section-header" onclick="toggleSection('${id}')">
+                    <span style="font-size:18px;">✏️</span>
+                    <span style="font-size:14px;font-weight:600;color:#f1f5f9;">${s.sectionName || 'Section'}</span>
+                    ${priorityBadge(s.priority || 'MEDIUM')}
+                    <span class="section-impact-label" id="${id}_arrow">▼</span>
+                </div>
+                <div class="rewrite-section-body" id="${id}">
+                    <p style="font-size:13px;color:#f59e0b;margin-bottom:12px;">⚠️ <strong>Why it's weak:</strong> ${s.whyWeak || ''}</p>
+                    <div class="before-after-grid">
+                        <div class="before-box">
+                            <strong>❌ Current Text</strong>
+                            ${s.currentText || 'N/A'}
+                        </div>
+                        <div class="after-box">
+                            <strong>✅ Suggested Rewrite</strong>
+                            ${s.suggestedRewrite || ''}
+                            <br>
+                            <button class="copy-snippet-btn" onclick="copySnippet('${id}_snippet', event)">📋 Copy suggestion</button>
+                            <span id="${id}_snippet" style="display:none;">${s.suggestedRewrite || ''}</span>
+                        </div>
+                    </div>
+                    <div class="why-box">💡 <strong>Impact if fixed:</strong> ${s.impact || ''}</div>
+                </div>
+            </div>`;
+        }).join('');
+
+        return `<div style="margin-top:24px;">
+            <div style="font-size:13px;font-weight:700;color:#f59e0b;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:14px;">
+                ✏️ Sections You Need to Rewrite (${sections.length})
+                <span style="font-size:11px;color:#64748b;font-weight:400;margin-left:8px;">Click any card to expand</span>
+            </div>
+            ${cards}
+        </div>`;
+    }
+
+    function toggleSection(id) {
+        const body  = document.getElementById(id);
+        const arrow = document.getElementById(id + '_arrow');
+        const isOpen = body.classList.contains('open');
+        body.classList.toggle('open', !isOpen);
+        if (arrow) arrow.textContent = isOpen ? '▼' : '▲';
+    }
+
+    function copySnippet(spanId, event) {
+        event.stopPropagation();
+        const text = document.getElementById(spanId).textContent;
+        navigator.clipboard.writeText(text)
+            .then(() => { event.target.textContent = '✅ Copied!'; setTimeout(() => { event.target.textContent = '📋 Copy suggestion'; }, 2000); })
+            .catch(() => alert('Copy failed. Please select and copy manually.'));
+    }
+
+    // ── URL CARD ──────────────────────────────────────────────────────────────────
     function urlCard(d, isYours) {
         const t = tierInfo(d.overall);
         const grid = DIMS.map(dim => metricCard(dim, d.scores[dim.key] || 0)).join('');
@@ -619,8 +823,7 @@ Output: Complete ready-to-publish content with:
                 ${grid}
             </div>
 
-            ${d.eeatBreakdown ? `<!-- E-E-A-T Breakdown -->
-            <details style="margin-bottom:16px;">
+            ${d.eeatBreakdown ? `<details style="margin-bottom:16px;">
                 <summary style="cursor:pointer;font-size:13px;font-weight:600;color:#a78bfa;padding:10px 0;list-style:none;display:flex;align-items:center;gap:6px;">
                     <span>▶</span> 🏅 E-E-A-T Breakdown
                 </summary>
@@ -641,24 +844,24 @@ Output: Complete ready-to-publish content with:
                 </div>` : '<div></div>'}
             </div>
 
-            ${isYours && d.recommendations && d.recommendations.length ? `<!-- Recommendations -->
-            <div style="border-top:1px solid rgba(255,255,255,0.07);padding-top:16px;">
+            ${isYours && d.recommendations && d.recommendations.length ? `<div style="border-top:1px solid rgba(255,255,255,0.07);padding-top:16px;margin-bottom:4px;">
                 <div style="font-size:12px;font-weight:600;color:#60a5fa;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px;">🚀 Recommendations to Outrank</div>
                 ${numberedList(d.recommendations, '#60a5fa')}
             </div>` : ''}
+
+            ${isYours ? sectionRewritePanel(d.sectionsToRewrite) : ''}
         </div>`;
     }
 
+    // ── DISPLAY COMPARE RESULTS ───────────────────────────────────────────────────
     function displayCompareResults(data) {
         const container = document.getElementById('compareResults');
         const all = [data.yourUrl, ...(data.competitors || [])];
 
-        // Comparison overview bar
         let compHtml = `<div style="background:rgba(15,23,42,0.7);border:1px solid rgba(148,163,184,0.12);border-radius:14px;padding:20px;margin-bottom:24px;">
             <div style="font-size:12px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;">📊 Overall Score Comparison</div>
             <div style="display:flex;gap:12px;align-items:flex-end;height:100px;margin-bottom:8px;">`;
 
-        const maxScore = Math.max(...all.map(d => d.overall), 1);
         all.forEach(d => {
             const isYours = d.url === data.yourUrl.url;
             const t = tierInfo(d.overall);
@@ -666,7 +869,7 @@ Output: Complete ready-to-publish content with:
             const shortUrl = d.url.replace(/https?:\/\//, '').substring(0, 25) + (d.url.length > 33 ? '…' : '');
             compHtml += `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
                 <span style="font-size:12px;font-weight:700;color:${t.color};">${d.overall}</span>
-                <div style="width:100%;height:${barH}px;background:${isYours ? 'rgba(96,165,250,0.5)' : 'rgba(148,163,184,0.2)'};border-radius:6px 6px 0 0;border-top:2px solid ${isYours ? '#60a5fa' : 'rgba(148,163,184,0.3)'}; min-height:4px;"></div>
+                <div style="width:100%;height:${barH}px;background:${isYours ? 'rgba(96,165,250,0.5)' : 'rgba(148,163,184,0.2)'};border-radius:6px 6px 0 0;border-top:2px solid ${isYours ? '#60a5fa' : 'rgba(148,163,184,0.3)'};min-height:4px;"></div>
                 <span style="font-size:10px;color:${isYours ? '#60a5fa' : '#64748b'};text-align:center;word-break:break-all;">${shortUrl}</span>
             </div>`;
         });
@@ -675,6 +878,7 @@ Output: Complete ready-to-publish content with:
         container.innerHTML = `<div style="margin-top:24px;">${compHtml}${all.map((d, i) => urlCard(d, i === 0)).join('')}</div>`;
     }
 
+    // ── GENERIC DISPLAY ───────────────────────────────────────────────────────────
     function displayResults(containerId, content) {
         const textContent = content.replace(/</g, '&lt;').replace(/>/g, '&gt;');
         document.getElementById(containerId).innerHTML = `
@@ -705,12 +909,12 @@ Output: Complete ready-to-publish content with:
         document.body.removeChild(a);
     }
 
-    function showLoading(containerId) {
+    function showLoading(containerId, msg) {
         document.getElementById(containerId).innerHTML = `
             <div style="margin-top:24px;">
                 <div class="loading">
                     <div class="spinner"></div>
-                    <span>Analyzing content... (20-30 seconds)</span>
+                    <span>${msg || 'Analyzing… (20-30 seconds)'}</span>
                 </div>
             </div>`;
     }
@@ -719,6 +923,127 @@ Output: Complete ready-to-publish content with:
         document.getElementById(containerId).innerHTML = `
             <div class="error-message" style="margin-top:24px;">❌ ${message}</div>`;
     }
+
+    // ── URL HISTORY (localStorage) ────────────────────────────────────────────────
+    const LS_YOUR   = 'cse_your_urls';    // stores array of strings
+    const LS_COMP   = 'cse_comp_sets';    // stores array of strings (each = a multi-line set)
+    const MAX_HIST  = 8;
+
+    function loadHistory(key) {
+        try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch { return []; }
+    }
+    function saveHistory(key, arr) {
+        try { localStorage.setItem(key, JSON.stringify(arr)); } catch {}
+    }
+
+    function pushYourUrl(url) {
+        if (!url) return;
+        let arr = loadHistory(LS_YOUR).filter(u => u !== url);
+        arr.unshift(url);
+        saveHistory(LS_YOUR, arr.slice(0, MAX_HIST));
+    }
+    function pushCompSet(raw) {
+        const clean = raw.trim();
+        if (!clean) return;
+        let arr = loadHistory(LS_COMP).filter(s => s !== clean);
+        arr.unshift(clean);
+        saveHistory(LS_COMP, arr.slice(0, MAX_HIST));
+    }
+
+    function renderYourUrlDrop() {
+        const list = document.getElementById('yourUrlDropList');
+        if (!list) return;
+        const arr = loadHistory(LS_YOUR);
+        if (arr.length === 0) {
+            list.innerHTML = `<div class="url-history-empty">No history yet — URLs are saved after each Analyze run.</div>`;
+            return;
+        }
+        list.innerHTML = arr.map((u, i) => `
+            <div class="url-history-item">
+                <button class="url-history-fill" title="${u}" onclick="autofillYourUrl(${i})">${u}</button>
+                <button class="url-history-del" title="Remove" onclick="removeYourUrl(${i})">✕</button>
+            </div>`).join('');
+    }
+
+    function renderCompDrop() {
+        const list = document.getElementById('compUrlDropList');
+        if (!list) return;
+        const arr = loadHistory(LS_COMP);
+        if (arr.length === 0) {
+            list.innerHTML = `<div class="url-history-empty">No history yet — competitor sets are saved after each Analyze run.</div>`;
+            return;
+        }
+        list.innerHTML = arr.map((s, i) => {
+            const preview = s.split('\n').filter(Boolean).join(' · ').substring(0, 60) + (s.length > 60 ? '…' : '');
+            return `<div class="url-history-item">
+                <button class="url-history-fill" title="${s}" onclick="autofillComp(${i})">${preview}</button>
+                <button class="url-history-del" title="Remove" onclick="removeComp(${i})">✕</button>
+            </div>`;
+        }).join('');
+    }
+
+    function autofillYourUrl(i) {
+        const arr = loadHistory(LS_YOUR);
+        if (arr[i]) document.getElementById('yourUrl').value = arr[i];
+        closeAllDropdowns();
+    }
+    function autofillComp(i) {
+        const arr = loadHistory(LS_COMP);
+        if (arr[i]) document.getElementById('competitorUrls').value = arr[i];
+        closeAllDropdowns();
+    }
+    function removeYourUrl(i) {
+        let arr = loadHistory(LS_YOUR);
+        arr.splice(i, 1);
+        saveHistory(LS_YOUR, arr);
+        renderYourUrlDrop();
+    }
+    function removeComp(i) {
+        let arr = loadHistory(LS_COMP);
+        arr.splice(i, 1);
+        saveHistory(LS_COMP, arr);
+        renderCompDrop();
+    }
+    function clearHistory(which) {
+        if (which === 'yourUrl') { saveHistory(LS_YOUR, []); renderYourUrlDrop(); }
+        else                     { saveHistory(LS_COMP, []); renderCompDrop(); }
+    }
+
+    function toggleDropdown(id) {
+        const el = document.getElementById(id);
+        const isOpen = el.classList.contains('open');
+        closeAllDropdowns();
+        if (!isOpen) {
+            if (id === 'yourUrlDrop') renderYourUrlDrop();
+            if (id === 'compUrlDrop') renderCompDrop();
+            el.classList.add('open');
+        }
+    }
+    function closeAllDropdowns() {
+        document.querySelectorAll('.url-history-dropdown, .comp-history-dropdown')
+            .forEach(el => el.classList.remove('open'));
+    }
+
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.url-input-wrap') && !e.target.closest('.comp-history-wrap')) {
+            closeAllDropdowns();
+        }
+    });
+
+    // Patch analyzeUrls to save history before running (wrap original)
+    const _origAnalyzeUrls = analyzeUrls;
+    analyzeUrls = async function() {
+        const yourUrl = document.getElementById('yourUrl').value.trim();
+        const compRaw = document.getElementById('competitorUrls').value.trim();
+        pushYourUrl(yourUrl);
+        pushCompSet(compRaw);
+        await _origAnalyzeUrls();
+    };
+
+    // Render dropdowns on page load so history button works immediately
+    renderYourUrlDrop();
+    renderCompDrop();
 </script>
 </body>
 </html>
