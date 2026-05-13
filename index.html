@@ -564,29 +564,29 @@ async function generateDocx(htmlContent, keyword, url) {
 
   <!-- Version Banner -->
   <div style="background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.3);border-radius:8px;padding:8px 16px;margin-bottom:1.5rem;display:flex;align-items:center;justify-content:space-between;font-size:12px;">
-    <span style="color:var(--green);font-weight:700;">✅ VERSION 4.2 — Publish works without Fetch · JSZip docx · Auto Page ID</span>
-    <span style="color:var(--muted);font-family:monospace;">Built: 12 May 2026 · 20:10</span>
+    <span style="color:var(--green);font-weight:700;">✅ VERSION 4.3 — Credentials auto-saved & restored · WP fields always visible · JSZip docx</span>
+    <span style="color:var(--muted);font-family:monospace;">Built: 13 May 2026 · 10:00</span>
   </div>
 
   <!-- API Key -->
   <div class="api-row">
     <span class="api-icon">🔑</span>
     <span class="api-note">Enter your Anthropic API key to use this tool. It stays in your browser only.</span>
-    <input type="text" id="apiKey" class="api-input" placeholder="sk-ant-..." />
+    <input type="text" id="apiKey" class="api-input" placeholder="sk-ant-..." oninput="saveCreds()" />
   </div>
 
-  <!-- Pipeline visual -->
+  <!-- WP Credentials -->
+  <div class="wp-row">
     <span class="wp-icon">🔐</span>
-    <span class="wp-note">WordPress (optional — fill to enable live publish)</span>
-    <input type="text" id="wpSite" class="wp-input" placeholder="https://yoursite.com" />
-    <input type="text" id="wpUser" class="wp-input" placeholder="WP Username" />
-    <input type="password" id="wpPass" class="wp-input" placeholder="Application Password" />
+    <span class="wp-note">WordPress — fill to enable live publish</span>
+    <input type="text" id="wpSite" class="wp-input" placeholder="https://yoursite.com" oninput="saveCreds()" />
+    <input type="text" id="wpUser" class="wp-input" placeholder="WP Username" oninput="saveCreds()" />
+    <input type="password" id="wpPass" class="wp-input" placeholder="Application Password" oninput="saveCreds()" />
+    <button onclick="saveCreds(true)" style="padding:6px 12px;border-radius:6px;border:1px solid rgba(52,211,153,0.4);background:rgba(52,211,153,0.1);color:var(--green);font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;">💾 Save</button>
   </div>
-  <div style="margin-bottom:1rem; font-size:11px; color:var(--muted); padding:0 2px;">
+  <div style="margin-bottom:1rem;font-size:11px;color:var(--muted);padding:0 2px;">
     💡 <strong style="color:var(--text);">Application Password:</strong> WP Admin → Users → Your Profile → Application Passwords → create one called "SEO Tool"
   </div>
-
-  <!-- Pipeline visual -->
   <div class="pipeline">
     <div class="pip-step" id="pip1">
       <div class="pip-dot">1</div> SERP Research
@@ -714,6 +714,30 @@ let finalContent = '';
 let researchData = '';
 let gapsData = '';
 let wpPageId = null;
+
+function saveCreds(showMsg) {
+  localStorage.setItem('seo_wp_site', document.getElementById('wpSite').value);
+  localStorage.setItem('seo_wp_user', document.getElementById('wpUser').value);
+  localStorage.setItem('seo_wp_pass', document.getElementById('wpPass').value);
+  localStorage.setItem('seo_api_key', document.getElementById('apiKey').value);
+  if (showMsg) {
+    const btn = event.target;
+    btn.textContent = '✓ Saved!';
+    setTimeout(() => btn.textContent = '💾 Save', 1500);
+  }
+}
+
+function loadCreds() {
+  const site = localStorage.getItem('seo_wp_site');
+  const user = localStorage.getItem('seo_wp_user');
+  const pass = localStorage.getItem('seo_wp_pass');
+  const key  = localStorage.getItem('seo_api_key');
+  if (site) document.getElementById('wpSite').value = site;
+  if (user) document.getElementById('wpUser').value = user;
+  if (pass) document.getElementById('wpPass').value = pass;
+  if (key)  document.getElementById('apiKey').value = key;
+}
+window.addEventListener('DOMContentLoaded', loadCreds);
 
 async function fetchPageContent() {
   const url = document.getElementById('pageUrl').value.trim();
