@@ -564,8 +564,8 @@ async function generateDocx(htmlContent, keyword, url) {
 
   <!-- Version Banner -->
   <div style="background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.3);border-radius:8px;padding:8px 16px;margin-bottom:1.5rem;display:flex;align-items:center;justify-content:space-between;font-size:12px;">
-    <span style="color:var(--green);font-weight:700;">✅ VERSION 4.3 — Credentials auto-saved & restored · WP fields always visible · JSZip docx</span>
-    <span style="color:var(--muted);font-family:monospace;">Built: 13 May 2026 · 10:00</span>
+    <span style="color:var(--green);font-weight:700;">✅ VERSION 4.4 — Gutenberg Block Format · Renders correctly on WordPress · Credentials saved</span>
+    <span style="color:var(--muted);font-family:monospace;">Built: 13 May 2026 · 11:30</span>
   </div>
 
   <!-- API Key -->
@@ -888,7 +888,7 @@ async function pushToWP(site, user, pass, content) {
     const res = await fetch(`${site}/wp-json/wp/v2/${endpoint}/${wpPageId}`, {
       method: 'POST',
       headers,
-      body: JSON.stringify({ content: { raw: content, rendered: content } })
+      body: JSON.stringify({ content: { raw: content } })
     });
     if (res.ok) return await res.json();
     if (res.status !== 404) {
@@ -1133,18 +1133,41 @@ For each gap, explain WHY it matters for rankings.`,
       : '';
 
     const rewriteResult = await callClaude(apiKey,
-      `You are the world's #1 SEO content strategist and conversion copywriter for digital marketing agencies in India. You have ghostwritten content that ranks #1 on Google for hundreds of competitive keywords. You write with a sharp editorial voice — specific, confident, zero fluff. Every sentence earns its place. You deeply understand E-E-A-T (Experience, Expertise, Authoritativeness, Trustworthiness) and write content that satisfies both search engines and real humans making buying decisions.
+      `You are the world's #1 SEO content strategist and conversion copywriter for digital marketing agencies in India. You have ghostwritten content that ranks #1 on Google for hundreds of competitive keywords. You write with a sharp editorial voice — specific, confident, zero fluff.
 
-OUTPUT FORMAT: You must output clean HTML only. Use proper semantic HTML tags:
-- <h1> for page title (only once)
-- <h2> for main section headings
-- <h3> for subsection headings  
-- <p> for paragraphs
-- <ul><li> for bullet lists
-- <ol><li> for numbered lists
-- <strong> for emphasis
-- <div class="faq-item"><h3 class="faq-q">Q: ...</h3><p class="faq-a">A: ...</p></div> for FAQs
-No markdown. No backticks. No explanatory text outside the HTML. Output ONLY the HTML content for the page body.`,
+CRITICAL OUTPUT FORMAT: You must output WordPress Gutenberg block format ONLY. Every element must use proper WordPress block comments. Examples:
+
+Heading H1:
+<!-- wp:heading {"level":1} -->
+<h1 class="wp-block-heading">Your Heading Here</h1>
+<!-- /wp:heading -->
+
+Heading H2:
+<!-- wp:heading {"level":2} -->
+<h2 class="wp-block-heading">Your Heading Here</h2>
+<!-- /wp:heading -->
+
+Heading H3:
+<!-- wp:heading {"level":3} -->
+<h3 class="wp-block-heading">Your Heading Here</h3>
+<!-- /wp:heading -->
+
+Paragraph:
+<!-- wp:paragraph -->
+<p>Your paragraph text here.</p>
+<!-- /wp:paragraph -->
+
+Bullet list:
+<!-- wp:list -->
+<ul class="wp-block-list"><li><strong>Point 1</strong> — explanation</li><li><strong>Point 2</strong> — explanation</li></ul>
+<!-- /wp:list -->
+
+Separator:
+<!-- wp:separator -->
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+<!-- /wp:separator -->
+
+No plain HTML. No markdown. No backticks. No explanatory text. Output ONLY WordPress Gutenberg block format from first line to last.`,
       `MISSION: Rewrite this page to rank #1 for "${keyword}" and convert visitors into clients. This is your masterpiece — write it like your reputation depends on it.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1215,7 +1238,9 @@ OUTPUT: Full HTML page body, top to bottom, no truncation. Every section complet
 
     // ── STEP 5: Publish to WordPress (auto if credentials present) ────────
     setProgress(5);
-    document.getElementById('outputBox').innerHTML = finalContent;
+    // Strip Gutenberg block comments for preview display
+    const previewHtml = finalContent.replace(/<!-- \/?wp:[^>]* -->/g, '');
+    document.getElementById('outputBox').innerHTML = previewHtml;
     document.getElementById('outputRaw').textContent = finalContent;
     document.getElementById('outputSection').style.display = 'block';
     document.getElementById('progressWrap').style.display = 'none';
