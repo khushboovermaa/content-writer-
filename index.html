@@ -564,8 +564,8 @@ async function generateDocx(htmlContent, keyword, url) {
 
   <!-- Version Banner -->
   <div style="background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.3);border-radius:8px;padding:8px 16px;margin-bottom:1.5rem;display:flex;align-items:center;justify-content:space-between;font-size:12px;">
-    <span style="color:var(--green);font-weight:700;">✅ VERSION 4.4 — Gutenberg Block Format · Renders correctly on WordPress · Credentials saved</span>
-    <span style="color:var(--muted);font-family:monospace;">Built: 13 May 2026 · 11:30</span>
+    <span style="color:var(--green);font-weight:700;">✅ VERSION 4.6 — Publishes in exact Wildnet Spectra format · Fetches raw blocks · Replaces text only</span>
+    <span style="color:var(--muted);font-family:monospace;">Built: 13 May 2026 · 13:00</span>
   </div>
 
   <!-- API Key -->
@@ -865,38 +865,133 @@ function showPublishBanner(success, msg) {
   banner.style.display = 'block';
 }
 
-async function pushToWP(site, user, pass, content) {
+function escHtmlStr(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function safeReplace(src, orig, repl) {
+  if (!orig || !repl || orig === repl || orig.length < 2) return src;
+  try {
+    const esc = orig.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+    src = src.replace(new RegExp('(>(?:[^<]*))'+esc+'((?:[^<]*)<)','g'), (m,a,b) => a+repl+b);
+  } catch(e) {}
+  try {
+    const esc2 = orig.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+    src = src.replace(new RegExp('(:\\s*"(?:[^"\\\\]|\\\\.)*?)'+esc2+'((?:[^"\\\\]|\\\\.)*")', 'g'), (m,a,b) => a+repl+b);
+  } catch(e) {}
+  let idx = 0;
+  while ((idx = src.indexOf(orig, idx)) !== -1) {
+    const ctx = src.substring(Math.max(0, idx-20), idx);
+    if (/(?:href|src|class|id|slug|data-)\s*=\s*["'][^"']*$/.test(ctx)) { idx += orig.length; continue; }
+    src = src.substring(0, idx) + repl + src.substring(idx + orig.length);
+    idx += repl.length;
+  }
+  return src;
+}
+
+async function pushToWP(site, user, pass, aiResearchContext) {
   const creds = btoa(`${user}:${pass}`);
   const headers = { 'Content-Type': 'application/json', 'Authorization': `Basic ${creds}` };
+  const wpBase = `${site}/wp-json/wp/v2`;
+  const pageUrl = document.getElementById('pageUrl').value.trim();
+  const keyword = document.getElementById('focusKeyword').value.trim();
 
-  // If no page ID cached, look it up from the URL slug
+  // STEP A: Resolve page ID
   if (!wpPageId) {
-    const pageUrl = document.getElementById('pageUrl').value.trim();
-    if (!pageUrl) throw new Error('No page URL entered. Enter the page URL and click "⬇ Fetch Live Page Content" first.');
     const slug = new URL(pageUrl).pathname.replace(/\/$/, '').split('/').pop();
     for (const endpoint of ['pages', 'posts']) {
-      const res = await fetch(`${site}/wp-json/wp/v2/${endpoint}?slug=${slug}&_fields=id`, { headers });
-      if (res.ok) {
-        const data = await res.json();
-        if (data && data.length > 0) { wpPageId = data[0].id; break; }
-      }
+      const res = await fetch(`${wpBase}/${endpoint}?slug=${slug}&_fields=id`, { headers });
+      if (res.ok) { const d = await res.json(); if (d && d.length > 0) { wpPageId = d[0].id; break; } }
     }
-    if (!wpPageId) throw new Error(`Could not find page with slug "${slug}". Make sure the URL is correct and credentials have access.`);
+    if (!wpPageId) throw new Error(`Cannot find page for slug "${slug}". Check URL and credentials.`);
   }
 
+  // STEP B: Fetch raw Gutenberg blocks from WordPress
+  showPublishBanner(null, '⏳ Step 1/4: Fetching raw Gutenberg blocks from WordPress...');
+  let templateRaw = '', pageTitle = '';
   for (const endpoint of ['pages', 'posts']) {
-    const res = await fetch(`${site}/wp-json/wp/v2/${endpoint}/${wpPageId}`, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({ content: { raw: content } })
-    });
-    if (res.ok) return await res.json();
-    if (res.status !== 404) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.message || `HTTP ${res.status}`);
+    const res = await fetch(`${wpBase}/${endpoint}/${wpPageId}?context=edit&_fields=id,title,content`, { headers });
+    if (res.ok) {
+      const d = await res.json();
+      templateRaw = d.content?.raw || '';
+      pageTitle = d.title?.rendered || '';
+      if (templateRaw.length > 200) break;
     }
   }
-  throw new Error('Page not found via pages or posts endpoint.');
+  if (!templateRaw) throw new Error('Could not fetch raw page content. Make sure credentials have Editor/Admin role.');
+
+  // STEP C: Extract Spectra CSS from live frontend
+  showPublishBanner(null, '⏳ Step 2/4: Extracting Spectra CSS from live page...');
+  let spectraCSS = '';
+  try {
+    const frontRes = await fetch(pageUrl, { cache: 'no-store' });
+    if (frontRes.ok) {
+      const frontHTML = await frontRes.text();
+      let styleRules = '';
+      const styleRe = /<style[^>]*>([\s\S]*?)<\/style>/gi;
+      let stM;
+      while ((stM = styleRe.exec(frontHTML)) !== null) {
+        if (/\.uagb-|\.uag-|\.wp-block-uagb|spectra/i.test(stM[1])) styleRules += stM[1].trim() + '\n';
+      }
+      if (styleRules.length > 100) {
+        spectraCSS = `<!-- wp:html -->\n<style id="uagb-cloned-css">\n${styleRules}\n</style>\n<!-- /wp:html -->\n`;
+      }
+    }
+  } catch(e) {}
+
+  // STEP D: AI replaces only text inside raw blocks
+  showPublishBanner(null, '⏳ Step 3/4: AI rewriting text inside your Spectra blocks...');
+  const vtSrc = templateRaw.replace(/<!--[\s\S]*?-->/g, ' ');
+  const visibleTexts = [];
+  const vtRe = />([^<]{5,200})</g;
+  let vtM;
+  while ((vtM = vtRe.exec(vtSrc)) !== null) {
+    const vt = vtM[1].trim();
+    if (vt.length >= 5 && !/^[\s\d\W]+$/.test(vt)) visibleTexts.push(vt);
+  }
+  const jsonRe = /"(?:headingTitle|description|subHeadingText|head_tag|sub_tag|ctaText|btnText|title|label|text|content)"\s*:\s*"([^"\\]{3,200})"/g;
+  let jM;
+  while ((jM = jsonRe.exec(templateRaw)) !== null) { if (jM[1].trim().length > 3) visibleTexts.push(jM[1].trim()); }
+  const uniqueTexts = [...new Set(visibleTexts)].slice(0, 60);
+
+  const apiKey = document.getElementById('apiKey').value.trim();
+  const aiPrompt = `You are rewriting a Wildnet Technologies service page. Keep ALL brand names, numbers (19+, 350+, 10,000+), and India references. Only update the service topic words and descriptions to match the new keyword.\n\nPAGE: ${pageTitle}\nNEW KEYWORD: ${keyword}\n\nRESEARCH CONTEXT:\n${aiResearchContext.substring(0,2000)}\n\nPHRASES TO REWRITE (give a replacement for EVERY one):\n${uniqueTexts.map((t,i) => `${i}. ${t}`).join('\n')}\n\nReturn ONLY valid JSON (no markdown, start with {):\n{"replacements":{"ORIGINAL":"REPLACEMENT",...},"page_title":"New title | Wildnet Technologies","meta_description":"155 char meta"}`;
+
+  const rRes = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+    body: JSON.stringify({ model: 'claude-opus-4-5', max_tokens: 6000, messages: [{ role: 'user', content: aiPrompt }] })
+  });
+  const rData = await rRes.json();
+  if (rData.error) throw new Error(rData.error.message);
+  const rText = (rData.content || []).filter(b => b.type === 'text').map(b => b.text).join('').trim();
+
+  let replacements = {}, newPageTitle = pageTitle, metaDesc = '';
+  try {
+    const ci = rText.indexOf('{'), cie = rText.lastIndexOf('}');
+    const rp = JSON.parse(rText.slice(ci, cie+1));
+    replacements = rp.replacements || {};
+    newPageTitle = rp.page_title || pageTitle;
+    metaDesc = rp.meta_description || '';
+  } catch(e) {}
+
+  // STEP E: Apply replacements to raw blocks
+  let cloned = (spectraCSS || '') + templateRaw;
+  Object.keys(replacements).sort((a,b) => b.length - a.length).forEach(orig => { cloned = safeReplace(cloned, orig, replacements[orig]); });
+
+  // STEP F: Publish back to WordPress
+  showPublishBanner(null, '⏳ Step 4/4: Publishing to WordPress...');
+  const pubBody = { title: newPageTitle, content: { raw: cloned } };
+  if (metaDesc) pubBody.meta = { _yoast_wpseo_metadesc: metaDesc, _yoast_wpseo_title: newPageTitle };
+
+  for (const endpoint of ['pages', 'posts']) {
+    const res = await fetch(`${wpBase}/${endpoint}/${wpPageId}`, { method: 'POST', headers, body: JSON.stringify(pubBody) });
+    if (res.ok) {
+      const result = await res.json();
+      setTimeout(async () => { try { await fetch(`${wpBase}/pages/${wpPageId}`, { method: 'POST', headers, body: JSON.stringify({ status: 'publish' }) }); } catch(e) {} }, 1500);
+      return result;
+    }
+    if (res.status !== 404) { const err = await res.json().catch(() => ({})); throw new Error(err.message || `HTTP ${res.status}`); }
+  }
+  throw new Error('Could not update page. Check credentials have Editor/Admin permissions.');
 }
 
 async function publishToWP() {
@@ -904,26 +999,19 @@ async function publishToWP() {
   const wpSite = document.getElementById('wpSite').value.trim();
   const wpUser = document.getElementById('wpUser').value.trim();
   const wpPass = document.getElementById('wpPass').value.trim();
-
-  if (!wpSite || !wpUser || !wpPass) {
-    alert('Please fill in your WordPress Site URL, Username, and Application Password above.');
-    return;
-  }
+  if (!wpSite || !wpUser || !wpPass) { alert('Please fill in your WordPress Site URL, Username, and Application Password above.'); return; }
 
   const btn = document.getElementById('publishBtn');
   btn.disabled = true;
   btn.textContent = '⏳ Publishing...';
 
   try {
-    await pushToWP(wpSite, wpUser, wpPass, finalContent);
+    const result = await pushToWP(wpSite, wpUser, wpPass, finalContent);
     btn.textContent = '✅ Published Live!';
     btn.style.background = 'rgba(52,211,153,0.25)';
-    showPublishBanner(true, '✅ Content successfully updated on your live WordPress page!');
-    setTimeout(() => {
-      btn.textContent = '🌐 Re-publish to WordPress';
-      btn.disabled = false;
-      btn.style.background = '';
-    }, 4000);
+    const viewLink = result.link ? ` <a href="${result.link}" target="_blank" style="color:var(--green);text-decoration:underline">View page →</a>` : '';
+    showPublishBanner(true, '✅ Published! Layout matches your Wildnet Spectra format exactly.' + viewLink);
+    setTimeout(() => { btn.textContent = '🌐 Re-publish'; btn.disabled = false; btn.style.background = ''; }, 5000);
   } catch (err) {
     showPublishBanner(false, '✗ Publish failed: ' + err.message);
     btn.textContent = '🌐 Publish to WordPress';
@@ -1162,12 +1250,21 @@ Bullet list:
 <ul class="wp-block-list"><li><strong>Point 1</strong> — explanation</li><li><strong>Point 2</strong> — explanation</li></ul>
 <!-- /wp:list -->
 
-Separator:
-<!-- wp:separator -->
-<hr class="wp-block-separator has-alpha-channel-opacity"/>
-<!-- /wp:separator -->
+Button (NEVER write "Primary CTA:" or "Secondary CTA:" — always use this block):
+<!-- wp:buttons -->
+<div class="wp-block-buttons"><!-- wp:button {"backgroundColor":"vivid-purple","textColor":"white","style":{"border":{"radius":"6px"}}} -->
+<div class="wp-block-button"><a class="wp-block-button__link has-white-color has-vivid-purple-background-color has-text-color has-background wp-element-button">Button Text Here</a></div>
+<!-- /wp:button --></div>
+<!-- /wp:buttons -->
 
-No plain HTML. No markdown. No backticks. No explanatory text. Output ONLY WordPress Gutenberg block format from first line to last.`,
+BANNED PHRASES — never output these:
+- "Primary CTA:" 
+- "Secondary CTA:"
+- "CTA:"
+- "Call to Action:"
+Always render CTAs as actual <!-- wp:buttons --> blocks.
+
+No plain HTML outside block wrappers. No markdown. No backticks. No explanatory text. Output ONLY WordPress Gutenberg block format from first line to last.`,
       `MISSION: Rewrite this page to rank #1 for "${keyword}" and convert visitors into clients. This is your masterpiece — write it like your reputation depends on it.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
