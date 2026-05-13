@@ -564,8 +564,8 @@ async function generateDocx(htmlContent, keyword, url) {
 
   <!-- Version Banner -->
   <div style="background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.3);border-radius:8px;padding:8px 16px;margin-bottom:1.5rem;display:flex;align-items:center;justify-content:space-between;font-size:12px;">
-    <span style="color:var(--green);font-weight:700;">✅ VERSION 4.6 — Publishes in exact Wildnet Spectra format · Fetches raw blocks · Replaces text only</span>
-    <span style="color:var(--muted);font-family:monospace;">Built: 13 May 2026 · 13:00</span>
+    <span style="color:var(--green);font-weight:700;">✅ VERSION 4.8 — Reduced API cost · Sonnet for publish · Plain text rewrite · Spectra clone publish</span>
+    <span style="color:var(--muted);font-family:monospace;">Built: 13 May 2026 · 14:00</span>
   </div>
 
   <!-- API Key -->
@@ -904,25 +904,45 @@ async function pushToWP(site, user, pass, aiResearchContext) {
     if (!wpPageId) throw new Error(`Cannot find page for slug "${slug}". Check URL and credentials.`);
   }
 
-  // STEP B: Fetch raw Gutenberg blocks from WordPress
-  showPublishBanner(null, '⏳ Step 1/4: Fetching raw Gutenberg blocks from WordPress...');
+  // STEP B: Fetch raw Gutenberg blocks from a CLEAN Spectra template page (not the broken page)
+  showPublishBanner(null, '⏳ Step 1/4: Fetching Spectra template from your SEO services page...');
   let templateRaw = '', pageTitle = '';
-  for (const endpoint of ['pages', 'posts']) {
-    const res = await fetch(`${wpBase}/${endpoint}/${wpPageId}?context=edit&_fields=id,title,content`, { headers });
+  // Always clone from a known good Spectra-formatted service page as the template
+  const templateSlugs = ['seo-services','digital-marketing/seo-services','organic-seo-services','off-page-seo-services','technical-seo-agency'];
+  let templateFrontendURL = '';
+  for (const slug of templateSlugs) {
+    const res = await fetch(`${wpBase}/pages?slug=${slug.split('/').pop()}&context=edit&_fields=id,title,content,link`, { headers });
     if (res.ok) {
       const d = await res.json();
-      templateRaw = d.content?.raw || '';
-      pageTitle = d.title?.rendered || '';
-      if (templateRaw.length > 200) break;
+      if (d && d.length > 0 && d[0].content?.raw?.length > 500) {
+        templateRaw = d[0].content.raw;
+        pageTitle = d[0].title?.rendered || '';
+        templateFrontendURL = d[0].link || '';
+        break;
+      }
     }
   }
-  if (!templateRaw) throw new Error('Could not fetch raw page content. Make sure credentials have Editor/Admin role.');
+  // Fallback: fetch the target page itself
+  if (!templateRaw) {
+    for (const endpoint of ['pages', 'posts']) {
+      const res = await fetch(`${wpBase}/${endpoint}/${wpPageId}?context=edit&_fields=id,title,content`, { headers });
+      if (res.ok) {
+        const d = await res.json();
+        templateRaw = d.content?.raw || '';
+        pageTitle = d.title?.rendered || '';
+        templateFrontendURL = pageUrl;
+        if (templateRaw.length > 200) break;
+      }
+    }
+  }
+  if (!templateRaw) throw new Error('Could not fetch template content. Make sure credentials have Editor/Admin role.');
 
-  // STEP C: Extract Spectra CSS from live frontend
-  showPublishBanner(null, '⏳ Step 2/4: Extracting Spectra CSS from live page...');
+  // STEP C: Extract Spectra CSS from the template's live frontend
+  showPublishBanner(null, '⏳ Step 2/4: Extracting Spectra CSS from live template...');
   let spectraCSS = '';
+  const cssSourceUrl = templateFrontendURL || pageUrl;
   try {
-    const frontRes = await fetch(pageUrl, { cache: 'no-store' });
+    const frontRes = await fetch(cssSourceUrl, { cache: 'no-store' });
     if (frontRes.ok) {
       const frontHTML = await frontRes.text();
       let styleRules = '';
@@ -953,12 +973,12 @@ async function pushToWP(site, user, pass, aiResearchContext) {
   const uniqueTexts = [...new Set(visibleTexts)].slice(0, 60);
 
   const apiKey = document.getElementById('apiKey').value.trim();
-  const aiPrompt = `You are rewriting a Wildnet Technologies service page. Keep ALL brand names, numbers (19+, 350+, 10,000+), and India references. Only update the service topic words and descriptions to match the new keyword.\n\nPAGE: ${pageTitle}\nNEW KEYWORD: ${keyword}\n\nRESEARCH CONTEXT:\n${aiResearchContext.substring(0,2000)}\n\nPHRASES TO REWRITE (give a replacement for EVERY one):\n${uniqueTexts.map((t,i) => `${i}. ${t}`).join('\n')}\n\nReturn ONLY valid JSON (no markdown, start with {):\n{"replacements":{"ORIGINAL":"REPLACEMENT",...},"page_title":"New title | Wildnet Technologies","meta_description":"155 char meta"}`;
+  const aiPrompt = `You are rewriting a Wildnet Technologies service page. The template content is from our SEO services page — you must transform ALL of it to be about the new keyword/service. Keep the Wildnet brand name and numbers (19+, 350+, 10,000+). Replace every mention of SEO/search engine optimization with the new service topic.\n\nTEMPLATE PAGE: ${pageTitle}\nNEW SERVICE/KEYWORD: ${keyword}\nNEW PAGE URL: ${pageUrl}\n\nRESEARCH CONTEXT (use this to write accurate, specific copy):\n${aiResearchContext.substring(0,2000)}\n\nPHRASES TO TRANSFORM (give a replacement for EVERY single one — be specific and natural):\n${uniqueTexts.map((t,i) => `${i}. ${t}`).join('\n')}\n\nReturn ONLY valid JSON (no markdown, no backticks, start with {):\n{"replacements":{"ORIGINAL_PHRASE":"NEW_PHRASE",...for every phrase listed above...},"page_title":"Best ${keyword} | Wildnet Technologies","meta_description":"155 char meta about ${keyword} by Wildnet"}`;
 
   const rRes = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-    body: JSON.stringify({ model: 'claude-opus-4-5', max_tokens: 6000, messages: [{ role: 'user', content: aiPrompt }] })
+    body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 4000, messages: [{ role: 'user', content: aiPrompt }] })
   });
   const rData = await rRes.json();
   if (rData.error) throw new Error(rData.error.message);
@@ -1221,50 +1241,14 @@ For each gap, explain WHY it matters for rankings.`,
       : '';
 
     const rewriteResult = await callClaude(apiKey,
-      `You are the world's #1 SEO content strategist and conversion copywriter for digital marketing agencies in India. You have ghostwritten content that ranks #1 on Google for hundreds of competitive keywords. You write with a sharp editorial voice — specific, confident, zero fluff.
+      `You are the world's #1 SEO content strategist for digital marketing agencies in India. You write with a sharp editorial voice — specific, confident, zero fluff. Every sentence earns its place.
 
-CRITICAL OUTPUT FORMAT: You must output WordPress Gutenberg block format ONLY. Every element must use proper WordPress block comments. Examples:
-
-Heading H1:
-<!-- wp:heading {"level":1} -->
-<h1 class="wp-block-heading">Your Heading Here</h1>
-<!-- /wp:heading -->
-
-Heading H2:
-<!-- wp:heading {"level":2} -->
-<h2 class="wp-block-heading">Your Heading Here</h2>
-<!-- /wp:heading -->
-
-Heading H3:
-<!-- wp:heading {"level":3} -->
-<h3 class="wp-block-heading">Your Heading Here</h3>
-<!-- /wp:heading -->
-
-Paragraph:
-<!-- wp:paragraph -->
-<p>Your paragraph text here.</p>
-<!-- /wp:paragraph -->
-
-Bullet list:
-<!-- wp:list -->
-<ul class="wp-block-list"><li><strong>Point 1</strong> — explanation</li><li><strong>Point 2</strong> — explanation</li></ul>
-<!-- /wp:list -->
-
-Button (NEVER write "Primary CTA:" or "Secondary CTA:" — always use this block):
-<!-- wp:buttons -->
-<div class="wp-block-buttons"><!-- wp:button {"backgroundColor":"vivid-purple","textColor":"white","style":{"border":{"radius":"6px"}}} -->
-<div class="wp-block-button"><a class="wp-block-button__link has-white-color has-vivid-purple-background-color has-text-color has-background wp-element-button">Button Text Here</a></div>
-<!-- /wp:button --></div>
-<!-- /wp:buttons -->
-
-BANNED PHRASES — never output these:
-- "Primary CTA:" 
-- "Secondary CTA:"
-- "CTA:"
-- "Call to Action:"
-Always render CTAs as actual <!-- wp:buttons --> blocks.
-
-No plain HTML outside block wrappers. No markdown. No backticks. No explanatory text. Output ONLY WordPress Gutenberg block format from first line to last.`,
+OUTPUT FORMAT: Plain structured text only. Use these markers:
+# for H1 (one only)
+## for H2 section headers
+### for H3 subheadings
+- for bullet points
+No HTML tags. No Gutenberg blocks. No markdown formatting beyond the above. This output is used for review and .docx download — WordPress publishing uses a separate system.`,
       `MISSION: Rewrite this page to rank #1 for "${keyword}" and convert visitors into clients. This is your masterpiece — write it like your reputation depends on it.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1328,15 +1312,21 @@ CONVERSION ENGINEERING:
 ✓ Build urgency naturally (limited capacity, competitive keyword windows)
 ✓ Address the #1 objection in every service section: "Why Wildnet over an in-house team or cheaper agency?"
 
-OUTPUT: Full HTML page body, top to bottom, no truncation. Every section complete. This is going live on a real website.`,
-      14000
+OUTPUT: Full structured page content, top to bottom, no truncation. Every section complete.`,
+      8000
     );
     finalContent = rewriteResult;
 
-    // ── STEP 5: Publish to WordPress (auto if credentials present) ────────
+    // ── STEP 5: Show output ────────
     setProgress(5);
-    // Strip Gutenberg block comments for preview display
-    const previewHtml = finalContent.replace(/<!-- \/?wp:[^>]* -->/g, '');
+    // Convert plain text to readable HTML for preview
+    const previewHtml = finalContent
+      .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+      .replace(/^## (.+)$/gm, '<h2 style="margin-top:1.5rem;color:#a78bfa">$2</h2>'.replace('$2','$1'))
+      .replace(/^### (.+)$/gm, '<h3 style="margin-top:1rem">$1</h3>')
+      .replace(/^- (.+)$/gm, '<li>$1</li>')
+      .replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>')
+      .replace(/\n\n/g, '<br><br>');
     document.getElementById('outputBox').innerHTML = previewHtml;
     document.getElementById('outputRaw').textContent = finalContent;
     document.getElementById('outputSection').style.display = 'block';
