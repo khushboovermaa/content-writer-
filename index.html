@@ -564,8 +564,8 @@ async function generateDocx(htmlContent, keyword, url) {
 
   <!-- Version Banner -->
   <div style="background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.3);border-radius:8px;padding:8px 16px;margin-bottom:1.5rem;display:flex;align-items:center;justify-content:space-between;font-size:12px;">
-    <span style="color:var(--green);font-weight:700;">✅ VERSION 4.8 — Reduced API cost · Sonnet for publish · Plain text rewrite · Spectra clone publish</span>
-    <span style="color:var(--muted);font-family:monospace;">Built: 13 May 2026 · 14:00</span>
+    <span style="color:var(--green);font-weight:700;">✅ VERSION 4.9 — Fixed Sonnet model name · Spectra clone publish · Reduced API cost</span>
+    <span style="color:var(--muted);font-family:monospace;">Built: 13 May 2026 · 14:15</span>
   </div>
 
   <!-- API Key -->
@@ -978,7 +978,7 @@ async function pushToWP(site, user, pass, aiResearchContext) {
   const rRes = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-    body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 4000, messages: [{ role: 'user', content: aiPrompt }] })
+    body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 4000, messages: [{ role: 'user', content: aiPrompt }] })
   });
   const rData = await rRes.json();
   if (rData.error) throw new Error(rData.error.message);
